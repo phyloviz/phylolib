@@ -25,19 +25,52 @@ public final class Options {
 	 * @param option the key-value option
 	 */
 	public void put(String option) {
-		String[] parts = option.toLowerCase().split("=", 2);
-		Option key = Option.get(parts[0]);
-		String value;
-		if (key == null || parts.length == 1 || !key.format().matches(value = parts[1]))
+		String[] parts = option.split("=", 2);
+		Option key = Option.get(parts[0].toLowerCase());
+		String value = null;
+		if (key == null) {
 			Log.warning(INVALID_OPTION, option);
-		else if (options.putIfAbsent(key, value) != null)
+			return;
+		}
+
+		if (parts.length == 1) {
+			if (key.format() == Format.FLAG) {
+				value = "true";
+			} else {
+				Log.warning(INVALID_OPTION, option);
+				return;
+			}
+		} else {
+			value = parts[1];
+			// Normalize empty value for flags to true: --flag=
+			if (key.format() == Format.FLAG && value.isEmpty()) {
+				value = "true";
+			}
+			if (!key.format().matches(value)) {
+				Log.warning(INVALID_OPTION, option);
+				return;
+			}
+		}
+
+		if (options.putIfAbsent(key, value) != null)
 			Log.warning(DUPLICATED_OPTION, key);
 	}
 
+    /**
+     * Returns the value for the given Option without removing it.
+     * <p>
+     * Uses the default value if the option is not present.
+     * @param option the option to get
+     */
+    public String get(Option option) {
+        String value = options.get(option);
+        return value != null ? value : option._default();
+    }
+
 	/**
-	 * Returns a Set object with the keys for this options.
+	 * Returns a Set object with the keys for these options.
 	 *
-	 * @return a set with this options' keys
+	 * @return a set with these options' keys
 	 */
 	public Set<Option> keys() {
 		return options.keySet();

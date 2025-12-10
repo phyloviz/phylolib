@@ -10,7 +10,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Responsible for calculating a {@link Tree phylogenetic tree} from a {@link Matrix distance matrix} using the Neighbour Joining algorithm.
+ * Responsible for calculating a {@link Tree phylogenetic tree} from a
+ * {@link Matrix distance matrix} using the Neighbour Joining algorithm.
  */
 public abstract class NeighbourJoining extends Algorithm {
 
@@ -18,7 +19,12 @@ public abstract class NeighbourJoining extends Algorithm {
 	private Map<Integer, Cluster> clusters;
 
 	@Override
-	public Tree process(Matrix matrix) {
+	public boolean supportsSparseMatrix() {
+		return false; // NJ algorithms require dense matrices
+	}
+
+	@Override
+	protected Tree processImpl(Matrix matrix) {
 		Tree tree = init(matrix);
 		while (clusters.size() > 2) {
 			Edge edge = select();
@@ -156,7 +162,8 @@ public abstract class NeighbourJoining extends Algorithm {
 	}
 
 	/**
-	 * Represents a cluster as the amount of elements in it, the total length of the cluster and the distances to other clusters.
+	 * Represents a cluster as the amount of elements in it, the total length of the
+	 * cluster and the distances to other clusters.
 	 */
 	protected final class Cluster {
 

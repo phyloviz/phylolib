@@ -17,17 +17,17 @@ public class EdmondsTest {
 	@DataProvider
 	public Object[][] data() {
 		return new Object[][] {
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 1.0 } },
 				  new Edge(1, 0, 1) },
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 2.0 },
 						{ 2.0, 1.0 } },
 				  new Edge(1, 0, 2),
 				  new Edge(2, 1, 1) },
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 3.0 },
 						{ 3.0, 3.0 },
@@ -47,7 +47,7 @@ public class EdmondsTest {
 	}
 
 	@Test(dataProvider = "data")
-	public void process_Valid_Success(Double[][] values, Edge... edges) {
+	public void process_Valid_Success(double[][] values, Edge... edges) {
 		Matrix matrix = new Matrix(true, null, values);
 		List<Edge> expected = Arrays.asList(edges);
 

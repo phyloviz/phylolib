@@ -11,7 +11,8 @@ public final class Profile {
 	private final Integer[] loci;
 
 	/**
-	 * Creates a profile corresponding to the given id and loci represented by characters.
+	 * Creates a profile corresponding to the given id and loci represented by
+	 * characters.
 	 *
 	 * @param id   the id of this profile
 	 * @param loci the characters composing the loci of this profile
@@ -29,7 +30,17 @@ public final class Profile {
 	 */
 	public Profile(String id, Stream<String> loci) {
 		this.id = id;
-		this.loci = loci.map(value -> value.isBlank() || value.equals("-") ? null : Integer.valueOf(value)).toArray(Integer[]::new);
+		this.loci = loci.map(value -> {
+			if (value.isBlank() || value.equals("-") || value.equals("N")) {
+				return null; // Missing data
+			}
+			try {
+				return Integer.valueOf(value);
+			} catch (NumberFormatException e) {
+				// Handle non-numeric values like LINcodes or other metadata
+				return null;
+			}
+		}).toArray(Integer[]::new);
 	}
 
 	public String id() {

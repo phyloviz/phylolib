@@ -26,7 +26,7 @@ public final class Arguments extends HashMap<Command, List<Parameters>> {
 	 *
 	 * @throws NoCommandException       if no command is found
 	 * @throws InvalidCommandException  if an invalid command is found
-	 * @throws RepeatedCommandException if a non repeatable command is found twice
+	 * @throws RepeatedCommandException if a non-repeatable command is found twice
 	 * @throws MissingTypeException     if no type is found for a command
 	 * @throws InvalidTypeException     if a command type is invalid
 	 */

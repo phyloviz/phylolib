@@ -11,7 +11,8 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
- * Responsible for calculating a {@link Tree phylogenetic tree} from a {@link Matrix distance matrix} using the Globally Closest Pairs algorithm.
+ * Responsible for calculating a {@link Tree phylogenetic tree} from a
+ * {@link Matrix distance matrix} using the Globally Closest Pairs algorithm.
  */
 public abstract class GloballyClosestPairs extends Algorithm {
 
@@ -20,7 +21,12 @@ public abstract class GloballyClosestPairs extends Algorithm {
 	private PriorityQueue<Edge> edges;
 
 	@Override
-	public Tree process(Matrix matrix) {
+	public boolean supportsSparseMatrix() {
+		return false; // GCP algorithms (UPGMA, WPGMA, etc.) require dense matrices
+	}
+
+	@Override
+	protected Tree processImpl(Matrix matrix) {
 		Tree tree = init(matrix);
 		while (clusters.size() > 1) {
 			Edge edge = select();
@@ -34,7 +40,8 @@ public abstract class GloballyClosestPairs extends Algorithm {
 		int size = matrix.size();
 		this.cluster = size;
 		this.clusters = new HashMap<>(size);
-		this.edges = new PriorityQueue<>(size * (size - 1) / 2, Comparator.comparingDouble(Edge::distance).thenComparing(this::tiebreak));
+		this.edges = new PriorityQueue<>(size * (size - 1) / 2,
+				Comparator.comparingDouble(Edge::distance).thenComparing(this::tiebreak));
 		for (int i = 0; i < size; i++) {
 			Cluster cluster = new Cluster(1, 0);
 			this.clusters.put(i, cluster);
@@ -50,8 +57,8 @@ public abstract class GloballyClosestPairs extends Algorithm {
 
 	private int tiebreak(Edge edge) {
 		return !clusters.containsKey(edge.from()) || !clusters.containsKey(edge.to())
-		       ? 0 :
-		       -(clusters.get(edge.from()).elements + clusters.get(edge.to()).elements);
+				? 0
+				: -(clusters.get(edge.from()).elements + clusters.get(edge.to()).elements);
 	}
 
 	private Edge select() {
@@ -86,15 +93,21 @@ public abstract class GloballyClosestPairs extends Algorithm {
 	}
 
 	/**
-	 * Calculates the dissimilarity between a given previously existing node and a given node created by joining two existing nodes.
+	 * Calculates the dissimilarity between a given previously existing node and a
+	 * given node created by joining two existing nodes.
 	 *
 	 * @param ij the distance between the two existing nodes that were joined
-	 * @param ik the distance between one of the nodes that was joined and the previously existing node
-	 * @param jk the distance between another of the nodes that was joined and the previously existing node
-	 * @param ci the number of elements in the cluster of one of the nodes that were joined
-	 * @param cj the number of elements in the cluster of another of the nodes that were joined
+	 * @param ik the distance between one of the nodes that was joined and the
+	 *           previously existing node
+	 * @param jk the distance between another of the nodes that was joined and the
+	 *           previously existing node
+	 * @param ci the number of elements in the cluster of one of the nodes that were
+	 *           joined
+	 * @param cj the number of elements in the cluster of another of the nodes that
+	 *           were joined
 	 *
-	 * @return the dissimilarity between the previously existing node and the created node
+	 * @return the dissimilarity between the previously existing node and the
+	 *         created node
 	 */
 	protected abstract double dissimilarity(double ij, double ik, double jk, int ci, int cj);
 

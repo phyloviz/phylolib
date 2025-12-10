@@ -20,17 +20,17 @@ public class GoeBURSTTest {
 	@DataProvider
 	public Object[][] data() {
 		return new Object[][] {
-				{ 1, new Double[][] {
+				{ 1, new double[][] {
 						{ },
 						{ 1.0 } },
 				  new Edge(0, 1, 1) },
-				{ 2, new Double[][] {
+				{ 2, new double[][] {
 						{ },
 						{ 2.0 },
 						{ 2.0, 1.0 } },
 				  new Edge(0, 1, 2),
 				  new Edge(1, 2, 1) },
-				{ 3, new Double[][] {
+				{ 3, new double[][] {
 						{ },
 						{ 3.0 },
 						{ 3.0, 3.0 },
@@ -50,7 +50,7 @@ public class GoeBURSTTest {
 	}
 
 	@Test(dataProvider = "data")
-	public void process_Valid_Success(int lvs, Double[][] values, Edge... edges) {
+	public void process_Valid_Success(int lvs, double[][] values, Edge... edges) {
 		Matrix matrix = new Matrix(true, IntStream.range(0, values.length).mapToObj(String::valueOf).toArray(String[]::new), values);
 		GoeBURST goeburst = new GoeBURST();
 		goeburst.init(new Context(), new Options());
@@ -61,5 +61,4 @@ public class GoeBURSTTest {
 		assertEquals(tree.edges().count(), expected.size());
 		assertTrue(tree.edges().allMatch(i -> expected.stream().anyMatch(j -> i.from() == j.from() && i.to() == j.to() && i.distance() == j.distance())));
 	}
-
 }

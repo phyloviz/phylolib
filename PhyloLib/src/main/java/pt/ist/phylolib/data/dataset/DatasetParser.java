@@ -1,5 +1,6 @@
 package pt.ist.phylolib.data.dataset;
 
+import pt.ist.phylolib.cli.Options;
 import pt.ist.phylolib.data.IReader;
 import pt.ist.phylolib.logging.Log;
 
@@ -16,13 +17,13 @@ public abstract class DatasetParser implements IReader<Dataset> {
 	private static final String INVALID = "Ignored invalid profile '%s'";
 
 	@Override
-	public Dataset parse(Stream<String> data) {
+	public Dataset parse(Stream<String> data, Options options) {
 		Iterator<String> iterator = data.iterator();
 		List<Profile> profiles = new ArrayList<>();
 		init(iterator);
 		while (iterator.hasNext()) {
 			Profile profile = parse(iterator);
-			if (profile.size() > 1 && (profiles.isEmpty() || profile.size() == profiles.get(0).size()))
+			if (profile.size() > 1 && (profiles.isEmpty() || profile.size() == profiles.getFirst().size()))
 				profiles.add(profile);
 			else
 				Log.warning(INVALID, profile.id());
@@ -33,7 +34,7 @@ public abstract class DatasetParser implements IReader<Dataset> {
 	/**
 	 * Initializes the state of the processor by parsing the first lines of the dataset.
 	 * <p>
-	 * By default does not parse anything.
+	 * By default, does not parse anything.
 	 *
 	 * @param iterator the iterator containing the lines of the dataset
 	 */

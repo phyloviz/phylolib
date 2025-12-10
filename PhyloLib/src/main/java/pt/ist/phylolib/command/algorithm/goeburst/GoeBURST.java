@@ -8,66 +8,114 @@ import pt.ist.phylolib.data.matrix.Matrix;
 import pt.ist.phylolib.data.tree.Edge;
 import pt.ist.phylolib.data.tree.Tree;
 
-import java.util.Comparator;
-import java.util.stream.IntStream;
+import java.util.Arrays;
 
-/**
- * Responsible for calculating a {@link Tree phylogenetic tree} from a {@link Matrix distance matrix} using the goeBURST algorithm.
- */
 public class GoeBURST extends Algorithm {
 
-	private int lvs;
+    private int lvs;
 
-	@Override
-	public void init(Context context, Options options) {
-		this.lvs = Integer.parseInt(options.remove(Option.LVS));
-	}
+    @Override
+    public void init(Context context, Options options) {
+        this.lvs = Integer.parseInt(options.remove(Option.LVS));
+    }
 
-	@Override
-	public Tree process(Matrix matrix) {
-		Tree tree = new Tree(matrix.ids());
-		int size = matrix.size();
-		int[][] lv = new int[size][lvs];
-		int[] clusters = new int[size];
-		IntStream.range(0, size)
-				.peek(i -> clusters[i] = i)
-				.mapToObj(i -> IntStream.range(0, size)
-						.mapToObj(j -> new Edge(i, j, matrix.distance(i, j)))
-						.filter(edge -> edge.distance() > 0 && edge.distance() <= lvs)
-						.peek(edge -> lv[i][(int) edge.distance() - 1]++))
-				.flatMap(i -> i)
-				.sorted(Comparator.comparingDouble(Edge::distance).thenComparing((i, j) -> tiebreak(lv, matrix.ids(), i.from(), i.to(), j.from(), j.to())))
-				.takeWhile(edge -> tree.edges().count() < size - 1)
-				.filter(edge -> clusters[edge.from()] != clusters[edge.to()])
-				.forEach(edge -> reduce(clusters, edge, tree));
-		return tree;
-	}
+    @Override
+    protected Tree processImpl(Matrix matrix) {
+        String[] ids = matrix.ids();
+        int size = matrix.size();
+        Tree tree = new Tree(ids);
 
-	private int tiebreak(int[][] lv, String[] ids, int ifrom, int ito, int jfrom, int jto) {
-		int diff;
-		for (int index = 0; index < lvs; index++) {
-			diff = Integer.compare(Math.max(lv[jfrom][index], lv[jto][index]), Math.max(lv[ifrom][index], lv[ito][index]));
-			if (diff != 0)
-				return diff;
-			diff = Integer.compare(Math.min(lv[jfrom][index], lv[jto][index]), Math.min(lv[ifrom][index], lv[ito][index]));
-			if (diff != 0)
-				return diff;
-		}
-		diff = Integer.compare(Math.min(ifrom, ito), Math.min(jfrom, jto));
-		return diff != 0 ? diff : compare(ids[compare(ids[ifrom], ids[ito]) > 0 ? ifrom : ito], ids[compare(ids[jfrom], ids[jto]) > 0 ? jfrom : jto]);
-	}
+        int[][] lv = new int[size][lvs];
 
-	private int compare(String i, String j) {
-		return i.length() == j.length() ? i.compareTo(j) : (i.length() - j.length());
-	}
+        // Pre-calculate LV stats
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i == j)
+                    continue;
+                double d = matrix.distance(i, j);
+                if (d > 0 && d <= lvs) {
+                    lv[i][(int) d - 1]++;
+                }
+            }
+        }
 
-	private void reduce(int[] clusters, Edge edge, Tree tree) {
-		int i = clusters[edge.from()];
-		int j = clusters[edge.to()];
-		for (int index = 0; index < clusters.length; index++)
-			if (clusters[index] == j)
-				clusters[index] = i;
-		tree.add(edge);
-	}
+        // Prim's Algorithm
+        double[] dist = new double[size];
+        int[] parent = new int[size];
+        boolean[] visited = new boolean[size];
 
+        Arrays.fill(dist, Double.MAX_VALUE);
+        Arrays.fill(parent, -1);
+
+        // Start from node 0 (or handle disconnected components by iterating all)
+        for (int root = 0; root < size; root++) {
+            if (visited[root])
+                continue;
+
+            dist[root] = 0;
+
+            for (int i = 0; i < size; i++) {
+                int u = -1;
+
+                // Find min dist node
+                for (int v = 0; v < size; v++) {
+                    if (!visited[v] && (u == -1 || dist[v] < dist[u])) {
+                        u = v;
+                    }
+                }
+
+                if (u == -1 || dist[u] == Double.MAX_VALUE)
+                    break;
+
+                visited[u] = true;
+                if (parent[u] != -1) {
+                    tree.add(new Edge(parent[u], u, dist[u]));
+                }
+
+                // Update neighbors
+                for (int v = 0; v < size; v++) {
+                    if (!visited[v]) {
+                        double w = matrix.distance(u, v);
+                        if (w > 0 && w <= lvs) {
+                            if (w < dist[v]) {
+                                dist[v] = w;
+                                parent[v] = u;
+                            } else if (w == dist[v]) {
+                                // Tie-break: compare edge (u, v) vs (parent[v], v)
+                                // Note: tiebreak returns < 0 if first is better (smaller)
+                                if (tiebreak(lv, ids, u, v, parent[v], v) < 0) {
+                                    parent[v] = u;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return tree;
+    }
+
+    // Tiebreak Logic adapted to use primitives
+    private int tiebreak(int[][] lv, String[] ids, int ifrom, int ito, int jfrom, int jto) {
+        int diff;
+        for (int index = 0; index < lvs; index++) {
+            diff = Integer.compare(Math.max(lv[jfrom][index], lv[jto][index]),
+                    Math.max(lv[ifrom][index], lv[ito][index]));
+            if (diff != 0)
+                return diff;
+            diff = Integer.compare(Math.min(lv[jfrom][index], lv[jto][index]),
+                    Math.min(lv[ifrom][index], lv[ito][index]));
+            if (diff != 0)
+                return diff;
+        }
+        diff = Integer.compare(Math.min(ifrom, ito), Math.min(jfrom, jto));
+        return diff != 0 ? diff
+                : compare(ids[compare(ids[ifrom], ids[ito]) > 0 ? ifrom : ito],
+                        ids[compare(ids[jfrom], ids[jto]) > 0 ? jfrom : jto]);
+    }
+
+    private int compare(String i, String j) {
+        return i.length() == j.length() ? i.compareTo(j) : (i.length() - j.length());
+    }
 }
