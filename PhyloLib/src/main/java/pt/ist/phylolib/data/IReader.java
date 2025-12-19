@@ -3,10 +3,8 @@ package pt.ist.phylolib.data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ist.phylolib.cli.Data;
-import pt.ist.phylolib.cli.Option;
 import pt.ist.phylolib.cli.Options;
 import pt.ist.phylolib.command.ICommand;
-import pt.ist.phylolib.data.matrix.SymmetryParser;
 import pt.ist.phylolib.exception.MissingInputException;
 import pt.ist.phylolib.logging.Log;
 
