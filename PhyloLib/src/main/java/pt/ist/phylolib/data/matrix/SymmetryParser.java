@@ -12,7 +12,8 @@ import java.util.stream.Stream;
 
 /**
  * Responsible for parsing {@link Matrix distance matrices} from and to Strings.
- * Implements streaming write support for memory-efficient output of large matrices.
+ * Implements streaming write support for memory-efficient output of large
+ * matrices.
  * Includes automatic optimization for Sparse Matrices on large datasets.
  */
 public abstract class SymmetryParser extends MatrixParser {
@@ -37,7 +38,8 @@ public abstract class SymmetryParser extends MatrixParser {
             return null;
 
         int size = Integer.parseInt(start);
-        if (size <= 0) return null;
+        if (size <= 0)
+            return null;
 
         String[] ids = new String[size];
         boolean forceDense = Boolean.parseBoolean(options.get(Option.FORCE_DENSE));
@@ -60,11 +62,22 @@ public abstract class SymmetryParser extends MatrixParser {
         int i = 0;
 
         while (iterator.hasNext()) {
-            if (i >= size) return null;
+            if (i >= size)
+                return null;
 
             String line = iterator.next();
             int tabIndex = line.indexOf('\t');
-            if (tabIndex == -1) return null;
+            if (tabIndex == -1) {
+                int rowSize = symmetric() ? i : size;
+                if (rowSize == 0) {
+                    ids[i] = line;
+                    matrix[i] = new double[0];
+                    i++;
+                    continue;
+                } else {
+                    return null;
+                }
+            }
 
             ids[i] = line.substring(0, tabIndex);
 
@@ -78,7 +91,8 @@ public abstract class SymmetryParser extends MatrixParser {
 
             while (col < rowSize && lastTab < line.length()) {
                 int nextTab = line.indexOf('\t', lastTab + 1);
-                if (nextTab == -1) nextTab = line.length();
+                if (nextTab == -1)
+                    nextTab = line.length();
 
                 // Validate bounds
                 if (lastTab + 1 >= line.length()) {
@@ -99,12 +113,14 @@ public abstract class SymmetryParser extends MatrixParser {
             }
 
             // Validation check - must have parsed exactly rowSize values
-            if (col != rowSize) return null;
+            if (col != rowSize)
+                return null;
 
             // If lastTab is not at end of line and there's non-empty content, it's invalid
             if (lastTab < line.length()) {
                 String remaining = line.substring(lastTab).trim();
-                if (!remaining.isEmpty()) return null;
+                if (!remaining.isEmpty())
+                    return null;
             }
 
             i++;
@@ -131,7 +147,18 @@ public abstract class SymmetryParser extends MatrixParser {
         while (iterator.hasNext()) {
             String line = iterator.next();
             int tabIndex = line.indexOf('\t');
-            if (tabIndex == -1) return null; // Skip invalid lines
+            if (tabIndex == -1) {
+                int rowSize = symmetric() ? i : size;
+                if (rowSize == 0) {
+                    ids[i] = line;
+                    colIndices[i] = new int[0];
+                    values[i] = new double[0];
+                    i++;
+                    continue;
+                } else {
+                    return null;
+                }
+            }
 
             ids[i] = line.substring(0, tabIndex);
 
@@ -143,7 +170,8 @@ public abstract class SymmetryParser extends MatrixParser {
 
             while (col < rowSize) {
                 int nextTab = line.indexOf('\t', lastTab + 1);
-                if (nextTab == -1) nextTab = line.length();
+                if (nextTab == -1)
+                    nextTab = line.length();
 
                 String valStr = line.substring(lastTab + 1, nextTab);
                 double val = Double.parseDouble(valStr);
@@ -157,7 +185,8 @@ public abstract class SymmetryParser extends MatrixParser {
 
                 lastTab = nextTab;
                 col++;
-                if (lastTab >= line.length()) break;
+                if (lastTab >= line.length())
+                    break;
             }
 
             // Commit Compact Row
