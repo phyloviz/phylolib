@@ -38,14 +38,15 @@ public abstract class SymmetryParser extends MatrixParser {
             return null;
 
         int size = Integer.parseInt(start);
-        if (size <= 0)
+        if (size <= 1) // Size must be at least 2 for a meaningful distance matrix
             return null;
 
         String[] ids = new String[size];
         boolean forceDense = Boolean.parseBoolean(options.get(Option.FORCE_DENSE));
+        boolean algorithmSupportsSparse = Boolean.parseBoolean(options.get(Option.ALGORITHM_SUPPORTS_SPARSE));
 
         // 2. Decide Mode: Sparse vs Dense
-        if (size > SPARSE_THRESHOLD_SIZE && !forceDense) {
+        if (size > SPARSE_THRESHOLD_SIZE && !forceDense && algorithmSupportsSparse) {
             Double lvs = Double.parseDouble(options.get(Option.LVS)); // The distance threshold
             return parseSparse(iterator, size, ids, lvs);
         } else {

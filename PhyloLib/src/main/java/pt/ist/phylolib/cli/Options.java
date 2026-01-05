@@ -56,16 +56,28 @@ public final class Options {
 			Log.warning(DUPLICATED_OPTION, key);
 	}
 
-    /**
-     * Returns the value for the given Option without removing it.
-     * <p>
-     * Uses the default value if the option is not present.
-     * @param option the option to get
-     */
-    public String get(Option option) {
-        String value = options.get(option);
-        return value != null ? value : option._default();
-    }
+	/**
+	 * Programmatically sets an option value (for internal use).
+	 * Overwrites any existing value.
+	 *
+	 * @param option the option to set
+	 * @param value  the value to set
+	 */
+	public void put(Option option, String value) {
+		options.put(option, value);
+	}
+
+	/**
+	 * Returns the value for the given Option without removing it.
+	 * <p>
+	 * Uses the default value if the option is not present.
+	 * 
+	 * @param option the option to get
+	 */
+	public String get(Option option) {
+		String value = options.get(option);
+		return value != null ? value : option._default();
+	}
 
 	/**
 	 * Returns a Set object with the keys for these options.

@@ -27,12 +27,12 @@ public abstract class Algorithm implements ICommand<Matrix, Tree> {
         // Validate sparse matrix compatibility
         if (matrix instanceof SparseMatrix && !supportsSparseMatrix()) {
             String algorithmName = this.getClass().getSimpleName();
-            Log.error("SPARSE",
-                    "Algorithm %s does not support sparse matrices. Please remove the -s flag or use a different algorithm.",
+            Log.error("SPARSE_UNSUPPORTED",
+                    "Algorithm %s does not support sparse matrices. Use --force-dense flag to load a dense matrix instead.",
                     algorithmName);
             throw new UnsupportedOperationException(
                     String.format(
-                            "Algorithm %s requires a dense matrix. Sparse matrices (using -s flag) are not compatible with this algorithm.",
+                            "Algorithm %s requires a dense matrix. The matrix was automatically loaded as sparse due to its size. Use --force-dense to override.",
                             algorithmName));
         }
 

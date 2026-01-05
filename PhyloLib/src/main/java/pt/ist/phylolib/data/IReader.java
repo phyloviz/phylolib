@@ -41,7 +41,7 @@ public interface IReader<T> {
      *                 compatibility checking)
      * @param <T>      the input data type
      * @return the input read from the option for the data type or the previous
-     * value for that data type
+     *         value for that data type
      * @throws MissingInputException if the input is not provided in the given
      *                               options and the previous value for this data
      *                               type is null
@@ -56,6 +56,13 @@ public interface IReader<T> {
                 Path path = file.path();
                 Log.info(READ, STARTED, path);
                 try (Stream<String> lines = Files.lines(path)) {
+                    // Set algorithm sparse support flag for matrix parser
+                    if (command instanceof pt.ist.phylolib.command.algorithm.Algorithm) {
+                        boolean supportsSparse = ((pt.ist.phylolib.command.algorithm.Algorithm) command)
+                                .supportsSparseMatrix();
+                        options.put(pt.ist.phylolib.cli.Option.ALGORITHM_SUPPORTS_SPARSE,
+                                String.valueOf(supportsSparse));
+                    }
                     T result;
                     result = ((IReader<T>) file.processor()).parse(lines, options);
                     if (result != null) {
