@@ -65,6 +65,8 @@ public interface IReader<T> {
                     }
                     T result;
                     result = ((IReader<T>) file.processor()).parse(lines, options);
+                    // Remove internal option to avoid 'unused option' warning
+                    options.remove(pt.ist.phylolib.cli.Option.ALGORITHM_SUPPORTS_SPARSE);
                     if (result != null) {
                         Log.info(READ, FINISHED, path);
                         return result;
