@@ -46,46 +46,32 @@ public class GoeBURST extends Algorithm {
 
         Arrays.fill(dist, Double.MAX_VALUE);
         Arrays.fill(parent, -1);
+        MinHeap heap = new MinHeap(dist);
 
-        // Start from node 0 (or handle disconnected components by iterating all)
-        for (int root = 0; root < size; root++) {
-            if (visited[root])
-                continue;
+        while (!heap.isEmpty()) {
+            int u = heap.extractMin();
+            if (u == -1)
+                break;
 
-            dist[root] = 0;
+            visited[u] = true;
+            if (parent[u] != -1) {
+                tree.add(new Edge(parent[u], u, dist[u]));
+            }
 
-            for (int i = 0; i < size; i++) {
-                int u = -1;
-
-                // Find min dist node
-                for (int v = 0; v < size; v++) {
-                    if (!visited[v] && (u == -1 || dist[v] < dist[u])) {
-                        u = v;
-                    }
-                }
-
-                if (u == -1 || dist[u] == Double.MAX_VALUE)
-                    break;
-
-                visited[u] = true;
-                if (parent[u] != -1) {
-                    tree.add(new Edge(parent[u], u, dist[u]));
-                }
-
-                // Update neighbors
-                for (int v = 0; v < size; v++) {
-                    if (!visited[v]) {
-                        double w = matrix.distance(u, v);
-                        if (w > 0 && w <= lvs) {
-                            if (w < dist[v]) {
-                                dist[v] = w;
+            // Update neighbors
+            for (int v = 0; v < size; v++) {
+                if (!visited[v]) {
+                    double w = matrix.distance(u, v);
+                    if (w > 0 && w <= lvs) {
+                        if (w < dist[v]) {
+                            dist[v] = w;
+                            parent[v] = u;
+                            heap.decreaseKey(v);
+                        } else if (w == dist[v]) {
+                            // Tie-break: compare edge (u, v) vs (parent[v], v)
+                            // Note: tiebreak returns < 0 if first is better (smaller)
+                            if (tiebreak(lv, ids, u, v, parent[v], v) < 0) {
                                 parent[v] = u;
-                            } else if (w == dist[v]) {
-                                // Tie-break: compare edge (u, v) vs (parent[v], v)
-                                // Note: tiebreak returns < 0 if first is better (smaller)
-                                if (tiebreak(lv, ids, u, v, parent[v], v) < 0) {
-                                    parent[v] = u;
-                                }
                             }
                         }
                     }
@@ -112,7 +98,7 @@ public class GoeBURST extends Algorithm {
         diff = Integer.compare(Math.min(ifrom, ito), Math.min(jfrom, jto));
         return diff != 0 ? diff
                 : compare(ids[compare(ids[ifrom], ids[ito]) > 0 ? ifrom : ito],
-                        ids[compare(ids[jfrom], ids[jto]) > 0 ? jfrom : jto]);
+                ids[compare(ids[jfrom], ids[jto]) > 0 ? jfrom : jto]);
     }
 
     private int compare(String i, String j) {
