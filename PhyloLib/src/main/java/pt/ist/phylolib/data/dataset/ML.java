@@ -5,7 +5,8 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 /**
- * Responsible for parsing {@link Dataset phylogenetic datasets} from Strings in MLST or MLVA format.
+ * Responsible for parsing {@link Dataset phylogenetic datasets} from Strings in
+ * MLST or MLVA format.
  */
 public final class ML extends DatasetParser {
 
@@ -13,7 +14,9 @@ public final class ML extends DatasetParser {
 	public Profile parse(Iterator<String> iterator) {
 		String[] profile = iterator.next().split("\\t");
 		String[] loci = Arrays.copyOfRange(profile, 1, profile.length);
-		return new Profile(profile[0], Arrays.stream(loci).allMatch(l -> l.matches("^(\\d+| |-)?$")) ? Arrays.stream(loci) : Stream.empty());
+		return new Profile(profile[0],
+				Arrays.stream(loci).allMatch(l -> l.matches("^([\\d_]+| |-|N)?$")) ? Arrays.stream(loci)
+						: Stream.empty());
 	}
 
 }

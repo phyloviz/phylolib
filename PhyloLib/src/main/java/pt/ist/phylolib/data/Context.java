@@ -2,89 +2,102 @@ package pt.ist.phylolib.data;
 
 import pt.ist.phylolib.cli.Data;
 import pt.ist.phylolib.cli.Options;
+import pt.ist.phylolib.command.ICommand;
 import pt.ist.phylolib.data.dataset.Dataset;
 import pt.ist.phylolib.data.matrix.Matrix;
 import pt.ist.phylolib.data.tree.Tree;
 import pt.ist.phylolib.exception.MissingInputException;
 
 /**
- * Represents the context of the program with the three different data types used.
+ * Maintains the shared data context for the program, storing references
+ * to the current {@link Dataset}, {@link Matrix}, and {@link Tree}.
+ * <p>
+ * Each getter performs a lazy read: if the corresponding input option is
+ * present, the value is reloaded; otherwise, the previous value is reused.
+ * If no previous value exists and the required option is missing, a
+ * {@link MissingInputException} is thrown.
  */
 public final class Context {
 
 	private Dataset dataset;
 	private Matrix matrix;
 	private Tree tree;
+	private ICommand<?, ?> currentCommand;
 
 	/**
-	 * Returns and updates the dataset with the given options.
-	 * <p>
-	 * If there is no dataset option, then returns the previous value for the dataset.
-	 * <p>
-	 * If the previous value is null, then throws a MissingInputException.
+	 * Returns the dataset, updating it if a dataset option is provided.
 	 *
-	 * @param options the options to search for the dataset option
-	 *
-	 * @return the dataset read from the options or the previous value
-	 *
-	 * @throws MissingInputException if the dataset option is not provided and the previous value is null
+	 * @param options the command-line options used to look up input files
+	 * @return the existing dataset or a newly loaded one
+	 * @throws MissingInputException if no dataset option is present and no
+	 *                               previous dataset exists
 	 */
 	public Dataset getDataset(Options options) throws MissingInputException {
-		return dataset = IReader.read(options, dataset, Data.DATASET);
+		return dataset = IReader.read(options, dataset, Data.DATASET, null);
 	}
 
 	/**
-	 * Returns and updates the matrix with the given options.
-	 * <p>
-	 * If there is no matrix option, then returns the previous value for the matrix.
-	 * <p>
-	 * If the previous value is null, then throws a MissingInputException.
+	 * Returns the matrix, updating it if a matrix option is provided.
 	 *
-	 * @param options the options to search for the matrix option
-	 *
-	 * @return the matrix read from the options or the previous value
-	 *
-	 * @throws MissingInputException if the matrix option is not provided and the previous value is null
+	 * @param options the command-line options used to look up input files
+	 * @return the existing matrix or a newly loaded one
+	 * @throws MissingInputException if no matrix option is present and no
+	 *                               previous matrix exists
 	 */
 	public Matrix getMatrix(Options options) throws MissingInputException {
-		return matrix = IReader.read(options, matrix, Data.MATRIX);
+		return matrix = IReader.read(options, matrix, Data.MATRIX, currentCommand);
 	}
 
 	/**
-	 * Reads and updates the tree with the given options.
-	 * <p>
-	 * If there is no tree option, then returns the previous value for the tree.
-	 * <p>
-	 * If the previous value is null, then throws a MissingInputException.
+	 * Sets the current command being executed.
+	 * Used to determine algorithm compatibility for sparse matrix auto-detection.
 	 *
-	 * @param options the options to search for the tree option
+	 * @param command the command instance
+	 */
+	public void setCurrentCommand(ICommand<?, ?> command) {
+		this.currentCommand = command;
+	}
+
+	/**
+	 * Gets the current command being executed.
 	 *
-	 * @return the tree read from the options or the previous value
+	 * @return the current command instance, or null if no command is set
+	 */
+	public ICommand<?, ?> getCurrentCommand() {
+		return currentCommand;
+	}
+
+	/**
+	 * Returns the tree, updating it if a tree option is provided.
 	 *
-	 * @throws MissingInputException if the tree option is not provided and the previous value is null
+	 * @param options the command-line options used to look up input files
+	 * @return the existing tree or a newly loaded one
+	 * @throws MissingInputException if no tree option is present and no
+	 *                               previous tree exists
 	 */
 	public Tree getTree(Options options) throws MissingInputException {
-		return tree = IReader.read(options, tree, Data.TREE);
+		return tree = IReader.read(options, tree, Data.TREE, null);
 	}
 
 	/**
-	 * Writes and updates the matrix with the given options.
+	 * Writes the given matrix using the provided options and updates the context.
 	 *
-	 * @param options the options to search for the out option
-	 * @param value   the matrix to write and update
+	 * @param options the command-line options used to find the output location
+	 * @param value   the matrix to write and store
 	 */
 	public void setMatrix(Options options, Matrix value) {
-		IWriter.write(options, matrix = value, Data.MATRIX);
+		matrix = value;
+		IWriter.write(options, matrix, Data.MATRIX);
 	}
 
 	/**
-	 * Writes and updates the tree with the given options.
+	 * Writes the given tree using the provided options and updates the context.
 	 *
-	 * @param options the options to search for the out option
-	 * @param value   the tree to write and update
+	 * @param options the command-line options used to find the output location
+	 * @param value   the tree to write and store
 	 */
 	public void setTree(Options options, Tree value) {
-		IWriter.write(options, tree = value, Data.TREE);
+		tree = value;
+		IWriter.write(options, tree, Data.TREE);
 	}
-
 }

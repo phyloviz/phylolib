@@ -17,18 +17,18 @@ public class StudierKepplerTest {
 	@DataProvider
 	public Object[][] data() {
 		return new Object[][] {
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 1.0 } },
 				  new Edge(0, 1, 1) },
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 2.0 },
 						{ 2.0, 1.0 } },
 				  new Edge(3, 0, 1.5),
 				  new Edge(3, 1, 0.5),
 				  new Edge(2, 3, 0.5) },
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 5.0 },
 						{ 9.0, 10.0 },
@@ -41,7 +41,7 @@ public class StudierKepplerTest {
 				  new Edge(7, 3, 2),
 				  new Edge(7, 4, 1),
 				  new Edge(6, 7, 2) },
-				{ new Double[][] {
+				{ new double[][] {
 						{ },
 						{ 3.0 },
 						{ 3.0, 3.0 },
@@ -67,7 +67,7 @@ public class StudierKepplerTest {
 	}
 
 	@Test(dataProvider = "data")
-	public void process_Valid_Success(Double[][] values, Edge... edges) {
+	public void process_Valid_Success(double[][] values, Edge... edges) {
 		Matrix matrix = new Matrix(true, null, values);
 		List<Edge> expected = Arrays.asList(edges);
 

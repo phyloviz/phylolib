@@ -5,6 +5,14 @@ plugins {
 group 'pt.ist.phylolib'
 version '1.0-SNAPSHOT'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 repositories {
     mavenCentral()
 }
@@ -15,7 +23,7 @@ jar {
     manifest {
         attributes "Main-Class": "$mainClassName"
     }
-
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
@@ -23,11 +31,18 @@ jar {
 
 dependencies {
     // https://mvnrepository.com/artifact/org.testng/testng
-    testImplementation group: 'org.testng', name: 'testng', version: '7.1.0'
+    testImplementation group: 'org.testng', name: 'testng', version: '7.10.2'
     // https://mvnrepository.com/artifact/org.reflections/reflections
-    implementation group: 'org.reflections', name: 'reflections', version: '0.9.10'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.9'
 }
 
 test {
     useTestNG()
+    maxHeapSize = '2g'
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
 }

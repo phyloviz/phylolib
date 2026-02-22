@@ -2,6 +2,7 @@ package pt.ist.phylolib.data.matrix;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import pt.ist.phylolib.cli.Options;
 
 import java.util.stream.Stream;
 
@@ -25,16 +26,16 @@ public class SymmetricTest {
 		};
 	}
 
-	@Test(dataProvider = "invalid")
-	public void parse_Invalid_Null(Stream<String> rows) {
-		assertNull(new Symmetric().parse(rows));
-	}
+	 @Test(dataProvider = "invalid")
+	 public void parse_Invalid_Null(Stream<String> rows) {
+	 	assertNull(new Symmetric().parse(rows, new Options()));
+	 }
 
 	@Test()
 	public void parse_Valid_Success() {
 		Stream<String> data = Stream.of("2", "1\t", "2\t4.5");
 
-		Matrix matrix = new Symmetric().parse(data);
+		Matrix matrix = new Symmetric().parse(data, new Options());
 
 		assertEquals(matrix.size(), 2);
 		assertEquals(matrix.distance(0, 0), 0);

@@ -2,6 +2,7 @@ package pt.ist.phylolib.data.tree;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import pt.ist.phylolib.cli.Options;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,14 +31,14 @@ public class NexusTest {
 
 	@Test(dataProvider = "invalid")
 	public void parse_Invalid_Null(Stream<String> data) {
-		assertNull(new Nexus().parse(data));
+		assertNull(new Nexus().parse(data, new Options()));
 	}
 
 	@Test
 	public void parse_Valid_Success() {
 		Stream<String> data = Stream.of("BEGIN TAXA;", "\tTaxLabels A B C", "END;", "BEGIN TREES;", "\tTree result = ((A:2.3,B:1.0)_:3.1,C:0.2)_;(D:0.5)E;", "END;");
 
-		Tree tree = new Nexus().parse(data);
+		Tree tree = new Nexus().parse(data, new Options());
 
 		List<Edge> edges = tree.edges().collect(Collectors.toList());
 

@@ -8,7 +8,8 @@ import pt.ist.phylolib.data.tree.Tree;
 import java.util.*;
 
 /**
- * Responsible for calculating a {@link Tree phylogenetic tree} from a {@link Matrix distance matrix} using the Edmonds algorithm.
+ * Responsible for calculating a {@link Tree phylogenetic tree} from a
+ * {@link Matrix distance matrix} using the Edmonds algorithm.
  */
 public final class Edmonds extends Algorithm {
 
@@ -22,7 +23,7 @@ public final class Edmonds extends Algorithm {
 	private List<List<EdgeNode>> edgeNodeCycle;
 
 	@Override
-	public Tree process(Matrix matrix) {
+	protected Tree processImpl(Matrix matrix) {
 		init(matrix);
 		while (!roots.isEmpty()) {
 			int root = roots.pop();
@@ -73,7 +74,8 @@ public final class Edmonds extends Algorithm {
 		Map<Integer, EdgeNode> map = new HashMap<>();
 		map.put(stronglyConnected.findSet(v), min);
 		inEdgeNode[root] = null;
-		for (int i = stronglyConnected.findSet(u); inEdgeNode[i] != null; i = stronglyConnected.findSet(inEdgeNode[i].getEdge().from())) {
+		for (int i = stronglyConnected.findSet(u); inEdgeNode[i] != null; i = stronglyConnected
+				.findSet(inEdgeNode[i].getEdge().from())) {
 			map.put(i, inEdgeNode[i]);
 			nodes.add(inEdgeNode[i]);
 			contractionSet.add(i);

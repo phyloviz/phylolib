@@ -2,6 +2,7 @@ package pt.ist.phylolib.data.tree;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import pt.ist.phylolib.cli.Options;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,14 +31,14 @@ public class NewickTest {
 
 	@Test(dataProvider = "invalid")
 	public void parse_Invalid_Null(Stream<String> data) {
-		assertNull(new Newick().parse(data));
+		assertNull(new Newick().parse(data, new Options()));
 	}
 
 	@Test
 	public void parse_Valid_Success() {
 		Stream<String> data = Stream.of("((A:2.3,B:1.0)_:3.1,C:0.2)_;(D:0.5)E;");
 
-		Tree tree = new Newick().parse(data);
+		Tree tree = new Newick().parse(data, new Options());
 
 		List<Edge> edges = tree.edges().collect(Collectors.toList());
 

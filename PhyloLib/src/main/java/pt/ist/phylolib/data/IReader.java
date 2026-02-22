@@ -1,7 +1,10 @@
 package pt.ist.phylolib.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.ist.phylolib.cli.Data;
 import pt.ist.phylolib.cli.Options;
+import pt.ist.phylolib.command.ICommand;
 import pt.ist.phylolib.exception.MissingInputException;
 import pt.ist.phylolib.logging.Log;
 
@@ -17,59 +20,75 @@ import java.util.stream.Stream;
 @FunctionalInterface
 public interface IReader<T> {
 
-	String READ = "%s reading file '%s'";
-	String STARTED = "Started";
-	String FINISHED = "Finished";
-	String FAILED = "Failed";
+    String READ = "%s reading file '%s'";
+    String STARTED = "Started";
+    String FINISHED = "Finished";
+    String FAILED = "Failed";
+    Logger log = LoggerFactory.getLogger(IReader.class);
 
-	/**
-	 * Reads data from an option of the given data type in the given options.
-	 * <p>
-	 * If there is no option of that data type, then returns the given previous value for this data type.
-	 * <p>
-	 * If the previous value is null, then throws a MissingInputException.
-	 *
-	 * @param options  the options to search for the specific option
-	 * @param previous the previous value for this data type
-	 * @param data     the data type to read
-	 * @param <T>      the input data type
-	 *
-	 * @return the input read from the option for the data type or the previous value for that data type
-	 *
-	 * @throws MissingInputException if the input is not provided in the given options and the previous value for this data type is null
-	 */
-	@SuppressWarnings("unchecked")
-	static <T> T read(Options options, T previous, Data data) throws MissingInputException {
-		String input = options.remove(data.option());
-		if (input != null) {
-			File file = File.get(input, data);
-			if (file != null) {
-				Path path = file.path();
-				Log.info(READ, STARTED, path);
-				try (Stream<String> lines = Files.lines(path)) {
-					T result = ((IReader<T>) file.processor()).parse(lines);
-					if (result != null) {
-						Log.info(READ, FINISHED, path);
-						return result;
-					}
-					Log.warning(READ, FAILED, path);
-				} catch (Exception exception) {
-					Log.warning(READ, FAILED, path);
-				}
-			}
-		}
-		if (previous == null)
-			throw new MissingInputException(data.toString());
-		return previous;
-	}
+    /**
+     * Reads data from an option of the given data type in the given options.
+     * <p>
+     * If there is no option of that data type, then returns the given previous
+     * value for this data type.
+     * <p>
+     * If the previous value is null, then throws a MissingInputException.
+     *
+     * @param options  the options to search for the specific option
+     * @param previous the previous value for this data type
+     * @param data     the data type to read
+     * @param command  the current command being executed (for algorithm
+     *                 compatibility checking)
+     * @param <T>      the input data type
+     * @return the input read from the option for the data type or the previous
+     *         value for that data type
+     * @throws MissingInputException if the input is not provided in the given
+     *                               options and the previous value for this data
+     *                               type is null
+     */
+    @SuppressWarnings("unchecked")
+    static <T> T read(Options options, T previous, Data data, ICommand<?, ?> command)
+            throws MissingInputException {
+        String input = options.remove(data.option());
+        if (input != null) {
+            File file = File.get(input, data);
+            if (file != null) {
+                Path path = file.path();
+                Log.info(READ, STARTED, path);
+                try (Stream<String> lines = Files.lines(path)) {
+                    // Set algorithm sparse support flag for matrix parser
+                    if (command instanceof pt.ist.phylolib.command.algorithm.Algorithm) {
+                        boolean supportsSparse = ((pt.ist.phylolib.command.algorithm.Algorithm) command)
+                                .supportsSparseMatrix();
+                        options.put(pt.ist.phylolib.cli.Option.ALGORITHM_SUPPORTS_SPARSE,
+                                String.valueOf(supportsSparse));
+                    }
+                    T result;
+                    result = ((IReader<T>) file.processor()).parse(lines, options);
+                    // Remove internal option to avoid 'unused option' warning
+                    options.remove(pt.ist.phylolib.cli.Option.ALGORITHM_SUPPORTS_SPARSE);
+                    if (result != null) {
+                        Log.info(READ, FINISHED, path);
+                        return result;
+                    }
+                    Log.warning(READ, FAILED, path);
+                } catch (Exception exception) {
+                    Log.warning(READ, FAILED, path);
+                    Log.exception(exception);
+                }
+            }
+        }
 
-	/**
-	 * Parses the input data into an object.
-	 *
-	 * @param data the input data to parse
-	 *
-	 * @return the object resultant from parsing the input data
-	 */
-	T parse(Stream<String> data);
+        if (previous == null)
+            throw new MissingInputException(data.toString());
+        return previous;
+    }
 
+    /**
+     * Parses the input data into an object.
+     *
+     * @param data the input data to parse
+     * @return the object resultant from parsing the input data
+     */
+    T parse(Stream<String> data, Options options);
 }

@@ -2,6 +2,7 @@ package pt.ist.phylolib.data.dataset;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import pt.ist.phylolib.cli.Options;
 
 import java.util.stream.Stream;
 
@@ -22,7 +23,7 @@ public class SNPTest {
 
 	@Test(dataProvider = "invalid")
 	public void parse_Invalid_Null(Stream<String> profiles) {
-		assertNull(new SNP().parse(profiles));
+		assertNull(new SNP().parse(profiles, new Options()));
 	}
 
 	@DataProvider
@@ -42,7 +43,7 @@ public class SNPTest {
 	public void parse_Valid_Success(String... profiles) {
 		Stream<String> data = Stream.of(profiles);
 
-		Dataset dataset = new SNP().parse(data);
+		Dataset dataset = new SNP().parse(data, new Options());
 
 		assertEquals(dataset.size(), 2);
 		assertEquals(dataset.profile(0).size(), 5);

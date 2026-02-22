@@ -53,7 +53,7 @@ public class Benchmark {
 
 	private static Object read(File file, String type, Data data) throws Exception {
 		try (Stream<String> lines = Files.lines(Paths.get(file.toURI()))) {
-			return ((IReader<?>) data.type(type).newInstance()).parse(lines);
+			return ((IReader<?>) data.type(type).newInstance()).parse(lines, new Options());
 		}
 	}
 
