@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import pt.ist.phylolib.data.tree.Edge;
-import pt.ist.phylolib.data.dataset.Profile;
 import pt.ist.phylolib.command.algorithm.edmonds.WeightedDisjointSet;
 
 /**
@@ -26,13 +25,13 @@ import pt.ist.phylolib.command.algorithm.edmonds.WeightedDisjointSet;
  * Header:
  *   [num_edges (8 bytes)]
  * 
- * Each edge entry (12 bytes total):
- *   [source_id (4 bytes), destination_id (4 bytes), distance (4 bytes)]
+ * Each edge entry (16 bytes total):
+ *   [source_id (4 bytes), destination_id (4 bytes), distance (8 bytes)]
  */
 public class EdgeListMapper {
     
     public static final int HEADER_SIZE = 8; // num_edges (1 long)
-    public static final int BYTES_PER_EDGE = 12; // 3 ints per edge
+    public static final int BYTES_PER_EDGE = 16; // 3 ints per edge
     public static final long NO_OFFSET = -1L;
     
     // Chunk size for batch memory mapping
@@ -89,7 +88,7 @@ public class EdgeListMapper {
             // Write the new edge
             edgeMbb.putInt(edge.from());
             edgeMbb.putInt(edge.to());
-            edgeMbb.putInt((int) edge.distance());
+            edgeMbb.putDouble(edge.distance());
             
             // Update header with new count
             headerMbb.position(0);
@@ -150,7 +149,7 @@ public class EdgeListMapper {
                     Edge edge = edges.get(edgesWritten);
                     edgeMbb.putInt(edge.from());
                     edgeMbb.putInt(edge.to());
-                    edgeMbb.putInt((int) edge.distance());
+                    edgeMbb.putDouble(edge.distance());
                     edgesWritten++;
                 }
                 
@@ -235,7 +234,7 @@ public class EdgeListMapper {
             for (int i = 0; i < edgesInChunk; i++) {
                 int srcId = mbb.getInt();
                 int destId = mbb.getInt();
-                int weight = mbb.getInt();
+                double weight = mbb.getDouble();
                 
                 int src = nodeCache.computeIfAbsent(srcId, id -> id);
                 int dst = nodeCache.computeIfAbsent(destId, id -> id);
@@ -321,7 +320,7 @@ public class EdgeListMapper {
             for (int i = 0; i < edgesInChunk; i++) {
                 int srcId = mbb.getInt();
                 int destId = mbb.getInt();
-                int weight = mbb.getInt();
+                double weight = mbb.getDouble();
                 
                 int src = nodeCache.computeIfAbsent(srcId, id -> id);
                 int dst = nodeCache.computeIfAbsent(destId, id -> id);
