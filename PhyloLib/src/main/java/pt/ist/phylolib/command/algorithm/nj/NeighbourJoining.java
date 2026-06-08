@@ -34,6 +34,7 @@ public abstract class NeighbourJoining extends Algorithm {
 			reduce(edge, clusters.first, clusters.second, distances.first, distances.second);
 		}
 		finish(tree);
+		tree.rootAtMidpoint();
 		return tree;
 	}
 
@@ -52,7 +53,16 @@ public abstract class NeighbourJoining extends Algorithm {
 				this.clusters.get(j).sum += distance;
 			}
 		}
-		return new Tree(matrix.ids());
+		return new Tree(ids(matrix));
+	}
+
+	private String[] ids(Matrix matrix) {
+		if (matrix.ids() != null)
+			return matrix.ids();
+		String[] ids = new String[matrix.size()];
+		for (int i = 0; i < ids.length; i++)
+			ids[i] = String.valueOf(i);
+		return ids;
 	}
 
 	private Edge select() {
@@ -66,6 +76,8 @@ public abstract class NeighbourJoining extends Algorithm {
 				}
 			}
 		}
+		if (min == null)
+			throw new IllegalStateException("Cannot select a pair from fewer than two clusters");
 		return min.first;
 	}
 
