@@ -290,68 +290,50 @@ public class NodeIndexMapper {
         }
     }
 
+    public int[] loadNodeIDs() throws IOException {
+        // Get the number of nodes from the header
+        int numNodes = getNumNodes();
+        int[] nodeIDs = new int[numNodes];
 
-
-    
-    // /**
-    //  * Load only node IDs without sequence data from memory-mapped file.
-    //  * This is much more memory-efficient when sequence data is not needed
-    //  * (e.g., when using pre-computed edges from disk).
-    //  * 
-    //  * @return Map of node ID to lightweight Node object (ID only, no sequence)
-    //  * @throws IOException if file operations fail
-    //  */
-    // public Map<Integer, Integer> loadNodeIdsOnly() throws IOException {
-    //     Map<Integer, Integer> nodeMap = new HashMap<>();
-        
-    //     try (RandomAccessFile raf = new RandomAccessFile(nodeIndexFile, "r");
-    //          FileChannel channel = raf.getChannel()) {
+        try (RandomAccessFile raf = new RandomAccessFile(nodeIndexFile, "r");
+             FileChannel channel = raf.getChannel()) {
             
-    //         long fileSize = channel.size();
-    //         if (fileSize < HEADER_SIZE) {
-    //             throw new IOException("Invalid file format: file too small for header");
-    //         }
+            if (channel.size() < HEADER_SIZE) {
+                throw new IOException("Invalid file format: file too small for header");
+            }
             
-    //         // Read header to get node count and data structure info
-    //         MappedByteBuffer headerBuf = channel.map(FileChannel.MapMode.READ_ONLY, 0, HEADER_SIZE);
-    //         headerBuf.order(ByteOrder.nativeOrder());
-    //         int numNodes = headerBuf.getInt();
-    //         int sequenceLength = headerBuf.getInt();
+            // Read header to get sequence length and type (to calculate entry size)
+            MappedByteBuffer headerBuf = channel.map(FileChannel.MapMode.READ_ONLY, 0, HEADER_SIZE);
+            headerBuf.order(ByteOrder.nativeOrder());
+            int numNodesFromHeader = headerBuf.getInt();
+            int sequenceLength = headerBuf.getInt();
             
-    //         int bytesPerElement = BYTES_PER_LOCUS;
-    //         int entrySize = NODE_ID_BYTES + sequenceLength * bytesPerElement;
+            int entrySize = NODE_ID_BYTES + sequenceLength * BYTES_PER_LOCUS;
             
-    //         // Read only node IDs, skip sequence data
-    //         int nodesPerChunk = (int)(MAX_MAPPING_SIZE / entrySize);
-    //         if (nodesPerChunk == 0) nodesPerChunk = 1;
+            // Read node IDs in chunks
+            int nodesPerChunk = (int)(MAX_MAPPING_SIZE / entrySize);
+            if (nodesPerChunk == 0) nodesPerChunk = 1;
             
-    //         for (int i = 0; i < numNodes; i += nodesPerChunk) {
-    //             int endIdx = Math.min(i + nodesPerChunk, numNodes);
-    //             int chunkSize = endIdx - i;
+            long fileSize = channel.size();
+            
+            for (int i = 0; i < numNodesFromHeader; i += nodesPerChunk) {
+                int endIdx = Math.min(i + nodesPerChunk, numNodesFromHeader);
+                int chunkSize = endIdx - i;
                 
-    //             long[] bounds = getChunkBounds(i, chunkSize, entrySize, fileSize);
-    //             long position = bounds[0];
-    //             long size = bounds[1];
+                long[] bounds = getChunkBounds(i, chunkSize, entrySize, fileSize);
+                long position = bounds[0];
+                long size = bounds[1];
                 
-    //             MappedByteBuffer mbb = channel.map(FileChannel.MapMode.READ_ONLY, position, size);
-    //             mbb.order(ByteOrder.nativeOrder());
+                MappedByteBuffer mbb = channel.map(FileChannel.MapMode.READ_ONLY, position, size);
+                mbb.order(ByteOrder.nativeOrder());
                 
-    //             // Read only node IDs, skip sequence bytes
-    //             for (int j = i; j < endIdx; j++) {
-    //                 // Read node ID
-    //                 int nodeId = mbb.getInt();
-                    
-    //                 // Skip sequence data - we don't need it
-    //                 mbb.position(mbb.position() + sequenceLength * bytesPerElement);
-                    
-    //                 // Create lightweight node with ID only (no sequence)
-    //                 nodeMap.put(nodeId, nodeId);
-    //             }
-    //         }
-    //     }
-        
-    //     return nodeMap;
-    // }
+                for (int j = 0; j < chunkSize; j++) {
+                    nodeIDs[i + j] = mbb.getInt(j * entrySize); // Read only the node ID
+                }
+            }
+        }
+        return nodeIDs;
+    }
     
     // /**
     //  * Load graph node IDs from memory-mapped file.
