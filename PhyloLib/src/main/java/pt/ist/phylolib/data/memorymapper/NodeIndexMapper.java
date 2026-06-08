@@ -28,10 +28,10 @@ import java.util.Set;
  * File Format:
  * 
  * Header:
- *    [num_nodes (4 bytes), sequence_length (4 bytes), sequence_type (1 byte)]
+ *   -  [num_nodes (4 bytes), sequence_length (4 bytes)]
  * 
  * For each node:
- *    [node_id (4 bytes), sequence_data (sequence_length * 4 bytes)]
+ *    - [node_id (4 bytes), sequence_data (sequence_length * 4 bytes)]
  * 
  */
 public final class NodeIndexMapper {
@@ -42,7 +42,7 @@ public final class NodeIndexMapper {
      * - sequence_length: 4 bytes (int)
      * - Total: 8 bytes
      */
-    private static final int HEADER_SIZE = 2 * Integer.BYTES; // num_nodes + sequence_length + sequence_type
+    private static final int HEADER_SIZE = 2 * Integer.BYTES; // num_nodes + sequence_length
 
     /** The size of a node ID in bytes (4 bytes) */
     private static final int NODE_ID_BYTES = Integer.BYTES; // 4 bytes for node ID
