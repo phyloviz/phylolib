@@ -34,7 +34,7 @@ import java.util.Set;
  *    [node_id (4 bytes), sequence_data (sequence_length * 4 bytes)]
  * 
  */
-public class NodeIndexMapper {
+public final class NodeIndexMapper {
 
     /** The size of the header in bytes
      * <p>
@@ -624,12 +624,11 @@ public class NodeIndexMapper {
      * Remove a profile from the memory-mapped file by replacing it with the last entry.
      * 
      * @param profile The profile to remove
-     * @param fileName Path to the node data file
      * @throws IOException if file operations fail
      */
-    public void removeNode(Profile profile, String fileName) throws IOException {
+    public void removeNode(Profile profile) throws IOException {
         String profileId = profile.id();
-        try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(nodeIndexFile, "rw");
              FileChannel channel = raf.getChannel()) {
 
             if (channel.size() < HEADER_SIZE) {
@@ -704,10 +703,9 @@ public class NodeIndexMapper {
      * Remove multiple nodes from the memory-mapped file in a single batch operation.
      * 
      * @param profiles List of profiles to remove
-     * @param fileName Path to the node data file
      * @throws IOException if file operations fail
      */
-    public void removeNodesBatch(List<Profile> profiles, String fileName) throws IOException {
+    public void removeNodesBatch(List<Profile> profiles) throws IOException {
         if (profiles == null || profiles.isEmpty()) {
             return;
         }
@@ -718,7 +716,7 @@ public class NodeIndexMapper {
             nodeIdsToRemove.add(reverseIdMap.get(profile.id()));
         }
         
-        try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(nodeIndexFile, "rw");
              FileChannel channel = raf.getChannel()) {
             
             if (channel.size() < HEADER_SIZE) {

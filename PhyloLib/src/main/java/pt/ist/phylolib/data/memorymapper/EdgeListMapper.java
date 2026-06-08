@@ -28,7 +28,7 @@ import pt.ist.phylolib.command.algorithm.edmonds.WeightedDisjointSet;
  * Each edge entry (16 bytes total):
  *   [source_id (4 bytes), destination_id (4 bytes), distance (8 bytes)]
  */
-public class EdgeListMapper {
+public final class EdgeListMapper {
     
     public static final int HEADER_SIZE = 8; // num_edges (1 long)
     public static final int BYTES_PER_EDGE = 16; // 3 ints per edge
