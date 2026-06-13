@@ -12,6 +12,8 @@ import java.util.stream.Stream;
  */
 public final class Tree {
 
+    private static final double ROOT_EPSILON = 1e-12;
+
     private final String[] ids;
     private final List<Edge> edges;
 
@@ -70,7 +72,11 @@ public final class Tree {
         if (ids == null || ids.length < 2 || edges.isEmpty())
             return;
 
-        Path longest = longestPath();
+        Map<Integer, List<Neighbour>> adjacency = adjacency();
+        if (!isConnected(adjacency))
+            return;
+
+        Path longest = longestPath(adjacency);
         if (longest == null)
             return;
 
@@ -78,13 +84,30 @@ public final class Tree {
         orientFrom(root);
     }
 
-    private Path longestPath() {
+    private boolean isConnected(Map<Integer, List<Neighbour>> adjacency) {
+        Map<Integer, Step> parents = new HashMap<>();
+        Map<Integer, Double> distances = new HashMap<>();
+        distances.put(0, 0.0);
+        collectPaths(0, -1, 0.0, parents, distances, adjacency);
+
+        for (int i = 0; i < ids.length; i++)
+            if (!distances.containsKey(i))
+                return false;
+
+        for (Edge edge : edges)
+            if (!distances.containsKey(edge.from()) || !distances.containsKey(edge.to()))
+                return false;
+
+        return true;
+    }
+
+    private Path longestPath(Map<Integer, List<Neighbour>> adjacency) {
         Path longest = null;
         for (int from = 0; from < ids.length; from++) {
             Map<Integer, Step> parents = new HashMap<>();
             Map<Integer, Double> distances = new HashMap<>();
             distances.put(from, 0.0);
-            collectPaths(from, -1, 0.0, parents, distances, adjacency());
+            collectPaths(from, -1, 0.0, parents, distances, adjacency);
 
             for (int to = from + 1; to < ids.length; to++) {
                 Double distance = distances.get(to);
@@ -108,6 +131,7 @@ public final class Tree {
 
     private int orientAtMidpoint(Path path) {
         double midpoint = path.distance / 2;
+        double epsilon = Math.max(1.0, Math.abs(path.distance)) * ROOT_EPSILON;
         double distance = 0.0;
         int node = path.to;
         List<Edge> pathEdges = new ArrayList<>();
@@ -120,9 +144,12 @@ public final class Tree {
 
         for (int i = pathEdges.size() - 1; i >= 0; i--) {
             Edge edge = pathEdges.get(i);
-            if (Double.compare(distance, midpoint) == 0)
+            if (close(distance, midpoint, epsilon))
                 return edge.from();
-            if (distance + edge.distance() > midpoint) {
+            double edgeEnd = distance + edge.distance();
+            if (close(edgeEnd, midpoint, epsilon))
+                return edge.to();
+            if (edgeEnd > midpoint) {
                 int root = nextNode();
                 double fromRoot = midpoint - distance;
                 double toRoot = edge.distance() - fromRoot;
@@ -131,10 +158,14 @@ public final class Tree {
                 edges.add(new Edge(root, edge.to(), toRoot));
                 return root;
             }
-            distance += edge.distance();
+            distance = edgeEnd;
         }
 
         return path.to;
+    }
+
+    private boolean close(double a, double b, double epsilon) {
+        return Math.abs(a - b) <= epsilon;
     }
 
     private void orientFrom(int root) {
