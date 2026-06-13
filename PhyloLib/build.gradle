@@ -46,3 +46,22 @@ test {
         exceptionFormat "full"
     }
 }
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    description = 'Runs the integration test suite.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    shouldRunAfter test
+
+    useTestNG {
+        excludeGroups 'performance'
+    }
+
+    maxHeapSize = '2g'
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
