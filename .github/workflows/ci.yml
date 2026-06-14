@@ -33,7 +33,7 @@ jobs:
           cache: gradle
 
       - name: Run integration tests and build JAR
-        run: ./gradlew --no-daemon clean integrationTest jar
+        run: ./gradlew --no-daemon clean check jar
 
       - name: Upload integration test results
         if: always()
