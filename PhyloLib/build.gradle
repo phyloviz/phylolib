@@ -49,7 +49,7 @@ test {
 
 tasks.register('integrationTest', Test) {
     group = 'verification'
-    description = 'Runs the integration test suite.'
+    description = 'Runs the CI integration test suite, excluding performance tests.'
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
@@ -64,4 +64,8 @@ tasks.register('integrationTest', Test) {
         events "passed", "skipped", "failed"
         exceptionFormat "full"
     }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('integrationTest')
 }
