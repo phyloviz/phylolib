@@ -46,3 +46,26 @@ test {
         exceptionFormat "full"
     }
 }
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    description = 'Runs the CI integration test suite, excluding performance tests.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    shouldRunAfter test
+
+    useTestNG {
+        excludeGroups 'performance'
+    }
+
+    maxHeapSize = '2g'
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('integrationTest')
+}

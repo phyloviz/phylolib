@@ -1,0 +1,53 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-tests-and-jar:
+    name: Integration tests and JAR
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: PhyloLib
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Run integration tests and build JAR
+        run: ./gradlew --no-daemon clean check jar
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            PhyloLib/build/reports/tests/integrationTest
+            PhyloLib/build/test-results/integrationTest
+          if-no-files-found: warn
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: phylolib-jar
+          path: PhyloLib/build/libs/*.jar
+          if-no-files-found: error
