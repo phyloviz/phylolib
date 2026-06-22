@@ -25,17 +25,36 @@ public class TreeTest {
     }
 
     @Test
-    public void rootAtMidpoint_MidpointCloseToNode_DoesNotSplitEdge() {
+    public void rootAtMidpoint_EvenTopologicalDiameter_RootsAtExistingNode() {
         Tree tree = new Tree(new String[]{"A", "B"});
-        tree.add(new Edge(2, 0, 0.3));
-        tree.add(new Edge(2, 1, 0.3000000000000001));
+        tree.add(new Edge(2, 0, 100));
+        tree.add(new Edge(2, 1, 0.1));
 
         tree.rootAtMidpoint();
 
         List<Edge> edges = tree.edges().collect(Collectors.toList());
         assertEquals(edges.size(), 2);
-        assertEquals(edges.get(0), new Edge(2, 0, 0.3));
-        assertEquals(edges.get(1), new Edge(2, 1, 0.3000000000000001));
+        assertEquals(edges.get(0), new Edge(2, 0, 100));
+        assertEquals(edges.get(1), new Edge(2, 1, 0.1));
+    }
+
+    @Test
+    public void rootAtMidpoint_OddTopologicalDiameter_SplitsCentralEdgeWeight() {
+        Tree tree = new Tree(new String[]{"A", "B", "C"});
+        tree.add(new Edge(3, 0, 100));
+        tree.add(new Edge(3, 4, 2));
+        tree.add(new Edge(4, 1, 1));
+        tree.add(new Edge(4, 2, 1));
+
+        tree.rootAtMidpoint();
+
+        List<Edge> edges = tree.edges().collect(Collectors.toList());
+        assertEquals(edges.size(), 5);
+        assertEquals(edges.get(0), new Edge(5, 3, 1));
+        assertEquals(edges.get(1), new Edge(3, 0, 100));
+        assertEquals(edges.get(2), new Edge(5, 4, 1));
+        assertEquals(edges.get(3), new Edge(4, 1, 1));
+        assertEquals(edges.get(4), new Edge(4, 2, 1));
     }
 
 }

@@ -61,38 +61,38 @@ public class StudierKeplerTest {
 
         assertEquals(roots.size(), 1);
         assertTrue(roots.getFirst() >= terminals);
-        assertEquals(maxDepth(roots.getFirst(), -1, adjacency(edges), 0), diameter(edges, terminals) / 2, 0.0000001);
+        assertEquals(maxDepth(roots.getFirst(), -1, adjacency(edges), 0), diameter(edges, terminals) / 2);
     }
 
-    private double diameter(List<Edge> edges, int terminals) {
+    private int diameter(List<Edge> edges, int terminals) {
         Map<Integer, List<Edge>> adjacency = adjacency(edges);
-        double diameter = 0;
+        int diameter = 0;
         for (int i = 0; i < terminals; i++)
             for (int j = i + 1; j < terminals; j++)
                 diameter = Math.max(diameter, distance(i, j, -1, adjacency, 0));
         return diameter;
     }
 
-    private double distance(int current, int target, int previous, Map<Integer, List<Edge>> adjacency, double distance) {
+    private int distance(int current, int target, int previous, Map<Integer, List<Edge>> adjacency, int distance) {
         if (current == target)
             return distance;
         for (Edge edge : adjacency.getOrDefault(current, List.of())) {
             int next = edge.from() == current ? edge.to() : edge.from();
             if (next == previous)
                 continue;
-            double found = distance(next, target, current, adjacency, distance + edge.distance());
-            if (!Double.isNaN(found))
+            int found = distance(next, target, current, adjacency, distance + 1);
+            if (found >= 0)
                 return found;
         }
-        return Double.NaN;
+        return -1;
     }
 
-    private double maxDepth(int current, int previous, Map<Integer, List<Edge>> adjacency, double depth) {
-        double max = depth;
+    private int maxDepth(int current, int previous, Map<Integer, List<Edge>> adjacency, int depth) {
+        int max = depth;
         for (Edge edge : adjacency.getOrDefault(current, List.of())) {
             int next = edge.from() == current ? edge.to() : edge.from();
             if (next != previous)
-                max = Math.max(max, maxDepth(next, current, adjacency, depth + edge.distance()));
+                max = Math.max(max, maxDepth(next, current, adjacency, depth + 1));
         }
         return max;
     }
