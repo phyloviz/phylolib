@@ -12,8 +12,6 @@ import java.util.stream.Stream;
  */
 public final class Tree {
 
-    private static final double ROOT_EPSILON = 1e-12;
-
     private final String[] ids;
     private final List<Edge> edges;
 
@@ -65,8 +63,9 @@ public final class Tree {
     }
 
     /**
-     * Roots this tree at the midpoint of the longest path between two labelled
-     * profiles.
+     * Roots this tree at the topological midpoint of the longest path between two
+     * labelled profiles. Edge weights are preserved but do not influence the
+     * choice of root.
      */
     public void rootAtMidpoint() {
         if (ids == null || ids.length < 2 || edges.isEmpty())
@@ -86,16 +85,16 @@ public final class Tree {
 
     private boolean isConnected(Map<Integer, List<Neighbour>> adjacency) {
         Map<Integer, Step> parents = new HashMap<>();
-        Map<Integer, Double> distances = new HashMap<>();
-        distances.put(0, 0.0);
-        collectPaths(0, -1, 0.0, parents, distances, adjacency);
+        Map<Integer, Integer> depths = new HashMap<>();
+        depths.put(0, 0);
+        collectPaths(0, -1, 0, parents, depths, adjacency);
 
         for (int i = 0; i < ids.length; i++)
-            if (!distances.containsKey(i))
+            if (!depths.containsKey(i))
                 return false;
 
         for (Edge edge : edges)
-            if (!distances.containsKey(edge.from()) || !distances.containsKey(edge.to()))
+            if (!depths.containsKey(edge.from()) || !depths.containsKey(edge.to()))
                 return false;
 
         return true;
@@ -105,34 +104,31 @@ public final class Tree {
         Path longest = null;
         for (int from = 0; from < ids.length; from++) {
             Map<Integer, Step> parents = new HashMap<>();
-            Map<Integer, Double> distances = new HashMap<>();
-            distances.put(from, 0.0);
-            collectPaths(from, -1, 0.0, parents, distances, adjacency);
+            Map<Integer, Integer> depths = new HashMap<>();
+            depths.put(from, 0);
+            collectPaths(from, -1, 0, parents, depths, adjacency);
 
             for (int to = from + 1; to < ids.length; to++) {
-                Double distance = distances.get(to);
-                if (distance != null && (longest == null || distance > longest.distance))
-                    longest = new Path(from, to, distance, parents);
+                Integer depth = depths.get(to);
+                if (depth != null && (longest == null || depth > longest.depth))
+                    longest = new Path(from, to, depth, parents);
             }
         }
         return longest;
     }
 
-    private void collectPaths(int current, int previous, double distance, Map<Integer, Step> parents,
-                              Map<Integer, Double> distances, Map<Integer, List<Neighbour>> adjacency) {
+    private void collectPaths(int current, int previous, int depth, Map<Integer, Step> parents,
+                              Map<Integer, Integer> depths, Map<Integer, List<Neighbour>> adjacency) {
         for (Neighbour neighbour : adjacency.getOrDefault(current, List.of())) {
             if (neighbour.node == previous)
                 continue;
             parents.put(neighbour.node, new Step(current, neighbour.distance));
-            distances.put(neighbour.node, distance + neighbour.distance);
-            collectPaths(neighbour.node, current, distance + neighbour.distance, parents, distances, adjacency);
+            depths.put(neighbour.node, depth + 1);
+            collectPaths(neighbour.node, current, depth + 1, parents, depths, adjacency);
         }
     }
 
     private int orientAtMidpoint(Path path) {
-        double midpoint = path.distance / 2;
-        double epsilon = Math.max(1.0, Math.abs(path.distance)) * ROOT_EPSILON;
-        double distance = 0.0;
         int node = path.to;
         List<Edge> pathEdges = new ArrayList<>();
 
@@ -142,30 +138,17 @@ public final class Tree {
             node = step.parent;
         }
 
-        for (int i = pathEdges.size() - 1; i >= 0; i--) {
-            Edge edge = pathEdges.get(i);
-            if (close(distance, midpoint, epsilon))
-                return edge.from();
-            double edgeEnd = distance + edge.distance();
-            if (close(edgeEnd, midpoint, epsilon))
-                return edge.to();
-            if (edgeEnd > midpoint) {
-                int root = nextNode();
-                double fromRoot = midpoint - distance;
-                double toRoot = edge.distance() - fromRoot;
-                removeUndirected(edge);
-                edges.add(new Edge(root, edge.from(), fromRoot));
-                edges.add(new Edge(root, edge.to(), toRoot));
-                return root;
-            }
-            distance = edgeEnd;
-        }
+        int midpoint = path.depth / 2;
+        if (path.depth % 2 == 0)
+            return pathEdges.get(pathEdges.size() - midpoint).to();
 
-        return path.to;
-    }
-
-    private boolean close(double a, double b, double epsilon) {
-        return Math.abs(a - b) <= epsilon;
+        Edge edge = pathEdges.get(pathEdges.size() - midpoint - 1);
+        int root = nextNode();
+        double halfDistance = edge.distance() / 2;
+        removeUndirected(edge);
+        edges.add(new Edge(root, edge.from(), halfDistance));
+        edges.add(new Edge(root, edge.to(), edge.distance() - halfDistance));
+        return root;
     }
 
     private void orientFrom(int root) {
@@ -207,7 +190,7 @@ public final class Tree {
                 .orElse(ids.length - 1) + 1;
     }
 
-    private record Path(int from, int to, double distance, Map<Integer, Step> parents) {
+    private record Path(int from, int to, int depth, Map<Integer, Step> parents) {
     }
 
     private record Step(int parent, double distance) {
