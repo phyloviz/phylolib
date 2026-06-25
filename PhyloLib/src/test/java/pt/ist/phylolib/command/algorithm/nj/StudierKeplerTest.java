@@ -12,7 +12,7 @@ import java.util.List;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-public class StudierKepplerTest {
+public class StudierKeplerTest {
 
 	@DataProvider
 	public Object[][] data() {
@@ -71,7 +71,7 @@ public class StudierKepplerTest {
 		Matrix matrix = new Matrix(true, null, values);
 		List<Edge> expected = Arrays.asList(edges);
 
-		Tree tree = new StudierKeppler().process(matrix);
+		Tree tree = new StudierKepler().process(matrix);
 
 		assertEquals(tree.edges().count(), expected.size());
 		assertTrue(tree.edges().allMatch(i -> expected.stream().anyMatch(j -> i.from() == j.from() && i.to() == j.to() && i.distance() == j.distance())));
