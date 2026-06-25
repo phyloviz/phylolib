@@ -15,3 +15,4 @@ Options:
     -l=<number>	--lvs=<number>		Limit of locus variants to consider using goeBURST algorithm [default: 3]
     -i=<file>	--input=<file>		Input profiles file for Edmonds (mandatory for edmonds) as <format>:<location> with format being (fasta|ml|snp)
     -p=<file>	--prev-state=<file>	Graph state base path for Edmonds (default: <input>_graph_state)
+    -f             --force-dense      Flag that allows forcing a dense matrix approach in algorithms that were using a sparse matrix automatically.
