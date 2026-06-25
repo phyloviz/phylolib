@@ -24,19 +24,19 @@ name, respective type and options. The usage of this command line application ca
 
 ```
 Usage:
-	phylolib help
-	phylolib distance (hamming|grapetree|kimura) [options]
-	phylolib correction (jukescantor) [options]
-	phylolib algorithm (goeburst|edmonds|sl|cl|upgma|upgmc|wpgma|wpgmc|saitounei|studierkepler|unj) [options]
-	phylolib optimization (lbr) [options]
+    phylolib help
+    phylolib distance (hamming|grapetree|kimura) [options]
+    phylolib correction (jukescantor) [options]
+    phylolib algorithm (goeburst|edmonds|sl|cl|upgma|upgmc|wpgma|wpgmc|saitounei|studierkepler|unj) [options]
+    phylolib optimization (lbr) [options]
 
 Options:
-	-o=<file>	--out=<file>		Output file as <format>:<location> with format being (asymmetric|symmetric|newick|nexus)
-	-d=<file>	--dataset=<file>	Input dataset file as <format>:<location> with format being (fasta|ml|snp)
-	-m=<file>	--matrix=<file>		Input distance matrix file as <format>:<location> with format being (asymmetric|symmetric)
-	-t=<file>	--tree=<file>		Input phylogenetic tree file as <format>:<location> with format being (newick|nexus)
-	-l=<number>	--lvs=<number>		Limit of locus variants to consider using goeBURST algorithm [default: 3]
-	-f               	--force-dense           Flag that allows forcing a dense matrix approach in algorithms that were using a sparse matrix automatically.
+    -o=<file>      --out=<file>       Output file as <format>:<location> with format being (asymmetric|symmetric|newick|nexus)
+    -d=<file>      --dataset=<file>   Input dataset file as <format>:<location> with format being (fasta|ml|snp)
+    -m=<file>      --matrix=<file>    Input distance matrix file as <format>:<location> with format being (asymmetric|symmetric)
+    -t=<file>      --tree=<file>      Input phylogenetic tree file as <format>:<location> with format being (newick|nexus)
+    -l=<number>    --lvs=<number>     Limit of locus variants to consider using goeBURST algorithm [default: 3]
+    -f             --force-dense      Flag that allows forcing a dense matrix approach in algorithms that were using a sparse matrix automatically.
 ```
 
 You can also run multiple commands by concatenating them with a ":" character like this:
