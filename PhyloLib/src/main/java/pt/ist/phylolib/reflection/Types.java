@@ -4,6 +4,7 @@ import org.reflections.Reflections;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -20,10 +21,14 @@ public class Types {
 	 * @return the names and constructors of the types that are inside packages starting with the given prefix and that inherit from the given type
 	 */
 	public static Map<String, Constructor<?>> get(Class<?> type) {
-		return new Reflections("pt.ist.phylolib")
+		Map<String, Constructor<?>> types = new HashMap<>(new Reflections("pt.ist.phylolib")
 				.getSubTypesOf(type).stream()
 				.filter(c -> !Modifier.isAbstract(c.getModifiers()))
-				.collect(Collectors.toMap(c -> c.getSimpleName().toLowerCase(), c -> c.getConstructors()[0]));
+				.collect(Collectors.toMap(c -> c.getSimpleName().toLowerCase(), c -> c.getConstructors()[0])));
+		Constructor<?> studierKepler = types.get("studierkepler");
+		if (studierKepler != null)
+			types.put("studierkeppler", studierKepler);
+		return types;
 	}
 
 }

@@ -2,6 +2,7 @@ package pt.ist.phylolib.cli;
 
 import pt.ist.phylolib.command.algorithm.gcp.UPGMA;
 import pt.ist.phylolib.command.algorithm.edmonds.Edmonds;
+import pt.ist.phylolib.command.algorithm.nj.StudierKepler;
 import pt.ist.phylolib.command.distance.Hamming;
 import pt.ist.phylolib.command.optimization.LBR;
 import pt.ist.phylolib.exception.*;
@@ -35,6 +36,24 @@ public class ArgumentsTest {
 	@Test
 	public void parse_Help_Null() throws NoCommandException, InvalidCommandException, InvalidTypeException, RepeatedCommandException, MissingTypeException {
 		assertNull(Arguments.parse(new String[] { "help" }));
+	}
+
+	@Test
+	public void parse_StudierKeplerAlias_Success() throws NoCommandException, InvalidCommandException, InvalidTypeException, RepeatedCommandException, MissingTypeException {
+		Arguments arguments = Arguments.parse(new String[] { "algorithm", "studierkepler" });
+
+		List<Parameters> algorithm = arguments.get(Command.ALGORITHM);
+		assertEquals(algorithm.size(), 1);
+		assertEquals(algorithm.getFirst().type().getDeclaringClass(), StudierKepler.class);
+	}
+
+	@Test
+	public void parse_StudierKepplerCompatibilityAlias_Success() throws NoCommandException, InvalidCommandException, InvalidTypeException, RepeatedCommandException, MissingTypeException {
+		Arguments arguments = Arguments.parse(new String[] { "algorithm", "studierkeppler" });
+
+		List<Parameters> algorithm = arguments.get(Command.ALGORITHM);
+		assertEquals(algorithm.size(), 1);
+		assertEquals(algorithm.getFirst().type().getDeclaringClass(), StudierKepler.class);
 	}
 
 	@Test
