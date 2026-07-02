@@ -9,11 +9,11 @@ public final class WeightedDisjointSet extends DisjointSet {
 		this.weight = new double[this.size];
 	}
 
-	private double findWeight(int i) {
+	protected double findWeight(int i) {
 		return i != pi[i] ? weight[i] + weight[pi[i]] : weight[i];
 	}
 
-	private void addWeight(int i, double w) {
+	protected void addWeight(int i, double w) {
 		weight[findSet(i)] += w;
 	}
 
