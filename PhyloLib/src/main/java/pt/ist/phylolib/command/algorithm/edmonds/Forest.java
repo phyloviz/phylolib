@@ -45,7 +45,7 @@ final class Forest {
 		rset.stream().map(node -> pi[max[node]]).filter(Objects::nonNull).forEach(node -> removeFromRoots(node, nodes));
 		while (!nodes.isEmpty()) {
 			EdgeNode node = nodes.remove(0);
-			if (node.isRemoveF())
+			if (node.isRemove())
 				continue;
 			Edge edge = node.getEdge();
 			tree.add(edge);
@@ -56,7 +56,7 @@ final class Forest {
 
 	private void removeFromRoots(EdgeNode node, List<EdgeNode> roots) {
 		for (; node != null; node = node.getParent()) {
-			node.setRemoveF();
+			node.setRemove();
 			for (EdgeNode child : node.getChildren()) {
 				child.setParent(null);
 				roots.add(child);
