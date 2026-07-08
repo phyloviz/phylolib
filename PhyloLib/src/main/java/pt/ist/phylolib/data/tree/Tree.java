@@ -1,7 +1,9 @@
 package pt.ist.phylolib.data.tree;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,12 +121,20 @@ public final class Tree {
 
     private void collectPaths(int current, int previous, int depth, Map<Integer, Step> parents,
                               Map<Integer, Integer> depths, Map<Integer, List<Neighbour>> adjacency) {
-        for (Neighbour neighbour : adjacency.getOrDefault(current, List.of())) {
-            if (neighbour.node == previous)
-                continue;
-            parents.put(neighbour.node, new Step(current, neighbour.distance));
-            depths.put(neighbour.node, depth + 1);
-            collectPaths(neighbour.node, current, depth + 1, parents, depths, adjacency);
+        Deque<Visit> stack = new ArrayDeque<>();
+        stack.push(new Visit(current, previous, depth));
+
+        while (!stack.isEmpty()) {
+            Visit visit = stack.pop();
+            List<Neighbour> neighbours = adjacency.getOrDefault(visit.node, List.of());
+            for (int i = neighbours.size() - 1; i >= 0; i--) {
+                Neighbour neighbour = neighbours.get(i);
+                if (neighbour.node == visit.previous || depths.containsKey(neighbour.node))
+                    continue;
+                parents.put(neighbour.node, new Step(visit.node, neighbour.distance));
+                depths.put(neighbour.node, visit.depth + 1);
+                stack.push(new Visit(neighbour.node, visit.node, visit.depth + 1));
+            }
         }
     }
 
@@ -154,18 +164,24 @@ public final class Tree {
     private void orientFrom(int root) {
         Map<Integer, List<Neighbour>> adjacency = adjacency();
         List<Edge> oriented = new ArrayList<>(edges.size());
-        orient(root, -1, adjacency, oriented);
+        Deque<Orientation> stack = new ArrayDeque<>();
+        stack.push(new Orientation(root, -1, 0));
+
+        while (!stack.isEmpty()) {
+            Orientation orientation = stack.pop();
+            if (orientation.previous >= 0)
+                oriented.add(new Edge(orientation.previous, orientation.node, orientation.distance));
+
+            List<Neighbour> neighbours = adjacency.getOrDefault(orientation.node, List.of());
+            for (int i = neighbours.size() - 1; i >= 0; i--) {
+                Neighbour neighbour = neighbours.get(i);
+                if (neighbour.node != orientation.previous)
+                    stack.push(new Orientation(neighbour.node, orientation.node, neighbour.distance));
+            }
+        }
+
         edges.clear();
         edges.addAll(oriented);
-    }
-
-    private void orient(int current, int previous, Map<Integer, List<Neighbour>> adjacency, List<Edge> oriented) {
-        for (Neighbour neighbour : adjacency.getOrDefault(current, List.of())) {
-            if (neighbour.node == previous)
-                continue;
-            oriented.add(new Edge(current, neighbour.node, neighbour.distance));
-            orient(neighbour.node, current, adjacency, oriented);
-        }
     }
 
     private Map<Integer, List<Neighbour>> adjacency() {
@@ -191,6 +207,12 @@ public final class Tree {
     }
 
     private record Path(int from, int to, int depth, Map<Integer, Step> parents) {
+    }
+
+    private record Visit(int node, int previous, int depth) {
+    }
+
+    private record Orientation(int node, int previous, double distance) {
     }
 
     private record Step(int parent, double distance) {
