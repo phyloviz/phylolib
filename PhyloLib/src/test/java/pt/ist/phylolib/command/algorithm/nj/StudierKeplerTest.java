@@ -20,14 +20,15 @@ public class StudierKeplerTest {
 				{ new double[][] {
 						{ },
 						{ 1.0 } },
-				  new Edge(0, 1, 1) },
+				  new Edge(2, 0, 0.5),
+				  new Edge(2, 1, 0.5) },
 				{ new double[][] {
 						{ },
 						{ 2.0 },
 						{ 2.0, 1.0 } },
 				  new Edge(3, 0, 1.5),
 				  new Edge(3, 1, 0.5),
-				  new Edge(2, 3, 0.5) },
+				  new Edge(3, 2, 0.5) },
 				{ new double[][] {
 						{ },
 						{ 5.0 },
@@ -62,7 +63,8 @@ public class StudierKeplerTest {
 				  new Edge(12, 9, 0.5),
 				  new Edge(13, 10, 0),
 				  new Edge(13, 11, 0),
-				  new Edge(12, 13, 0) }
+				  new Edge(14, 12, 0),
+				  new Edge(14, 13, 0) }
 		};
 	}
 
