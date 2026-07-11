@@ -1,22 +1,43 @@
-# phylolib
+# PhyloLib
 
-PhyloLib is a library of efficient algorithms for phylogenetic analysis in the form of a command line application. It
-was developed in the scope of a master thesis that was divided into two phases. The first phase was the project composed
-of a [report](https://www.overleaf.com/read/dxpfjfwtfdcs) and
-a [presentation](https://docs.google.com/presentation/d/1x_T11wbP_nEoqif2Tt05Od9tPjfYgre55OPe69C3I7k/edit?usp=sharing).
-And the second phase was the dissertation composed of a [report](http://arxiv.org/abs/2012.12697),
-an [article](https://www.overleaf.com/read/kmjyztpsknbp)
-with [supplementary data](https://www.overleaf.com/read/tqpsxpcynrwh),
-a [presentation](https://docs.google.com/presentation/d/1qPudTnvzP8hGGGDKaR8n9iOIMUOoeEIu2nGxD7D9tUE/edit?usp=sharing),
-a [documentation](https://luanab.github.io/phylolib/index.html), a [video](https://youtu.be/v_pCZMlCyRY) explaining how
-to use the library, and a [video](https://youtu.be/hr0iBjTeV1U) explaining how to deploy the application in a Docker
-image and run it. Instead of building the Docker image, it is also possible to run an already
-published [Docker image](https://hub.docker.com/r/luanab/phylolib) in Docker Hub. This second phase was accomplished
-bearing in mind an agile approach using [GitHub's project functionality](https://github.com/Luanab/phylolib/projects/1).
+PhyloLib is an open-source command-line library of efficient algorithms for distance-based phylogenetic analysis.
+
+The project was originally developed in the scope of a master's thesis at Instituto Superior Técnico, divided into two
+phases. The first phase consisted of an initial project report and presentation. The second phase resulted in the
+master's thesis, an article, supplementary material, documentation, usage examples, and the first Docker-based
+distribution of the library.
+
+Since then, PhyloLib has continued to evolve under the PHYLOViZ organization. It provides a composable phylogenetic
+workflow in which distance computation, distance correction, tree inference, and local optimization can be executed
+independently or combined into a complete analysis pipeline.
+
+The library supports data formats commonly used in microbial typing studies, handles missing and ambiguous characters,
+and exposes multiple distance models and phylogenetic inference algorithms through a uniform command-line interface.
+
+PhyloLib is implemented in Java 21 and includes unit and integration tests, continuous integration, example datasets,
+Docker support, and a Nextflow pipeline for reproducible and containerized execution.
+
+A pre-built [Docker image](https://hub.docker.com/r/gonfrutuoso/phylolib) is available on Docker Hub.
+
 The unit tests and benchmarks developed for this library are available in
-the [test folder](https://github.com/Luanab/phylolib/tree/master/PhyloLib/src/test/java/pt/ist/phylolib) of the code.
+the [test folder](https://github.com/phyloviz/phylolib/tree/master/PhyloLib/src/test/java/pt/ist/phylolib) of the code.
 
-### Usage
+## Project History
+
+The original academic work and associated material are available through the following references:
+
+- [Initial project report](https://www.overleaf.com/read/dxpfjfwtfdcs)
+- [Initial project presentation](https://docs.google.com/presentation/d/1x_T11wbP_nEoqif2Tt05Od9tPjfYgre55OPe69C3I7k/edit?usp=sharing)
+- [Master's thesis](http://arxiv.org/abs/2012.12697)
+- [Original article](https://www.overleaf.com/read/kmjyztpsknbp)
+- [Supplementary material](https://www.overleaf.com/read/tqpsxpcynrwh)
+- [Dissertation presentation](https://docs.google.com/presentation/d/1qPudTnvzP8hGGGDKaR8n9iOIMUOoeEIu2nGxD7D9tUE/edit?usp=sharing)
+- [Original documentation](https://luanab.github.io/phylolib/index.html)
+- [Usage video](https://youtu.be/v_pCZMlCyRY)
+- [Docker deployment video](https://youtu.be/hr0iBjTeV1U)
+- [Original repository](https://github.com/luanab/phylolib)
+
+## Usage
 
 To execute a command of this command line application you should type the name of the library followed by the command
 name, respective type and options. The usage of this command line application can be retrieved by running the command
@@ -52,7 +73,7 @@ dictated by the order in which they are provided.
 For example, in the execution above, the order in which the commands would be executed would be distance and then
 algorithm and not algorithm and then distance.
 
-### JAR
+## JAR
 
 To compile this project into a JAR and execute it, you should:
 
@@ -63,7 +84,7 @@ To compile this project into a JAR and execute it, you should:
 5. Open the terminal in the folder *build/libs* of the project.
 6. Run the command ```java -jar PhyloLib-1.0-SNAPSHOT.jar help``` to execute the JAR.
 
-### Docker
+## Docker
 
 To build a Docker image for this project and execute it, you should:
 
@@ -73,3 +94,7 @@ To build a Docker image for this project and execute it, you should:
 4. Run the command
    ```docker run --rm -v $HOME/<DIRECTORY>/files:/files -v $HOME/<DIRECTORY>/logs:/logs phylolib:latest help``` to
    execute the Docker image.
+
+## License
+
+PhyloLib is licensed under the [MIT License](LICENSE).
