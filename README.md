@@ -22,21 +22,6 @@ A pre-built [Docker image](https://hub.docker.com/r/gonfrutuoso/phylolib) is ava
 The unit tests and benchmarks developed for this library are available in
 the [test folder](https://github.com/phyloviz/phylolib/tree/master/PhyloLib/src/test/java/pt/ist/phylolib) of the code.
 
-## Project History
-
-The original academic work and associated material are available through the following references:
-
-- [Initial project report](https://www.overleaf.com/read/dxpfjfwtfdcs)
-- [Initial project presentation](https://docs.google.com/presentation/d/1x_T11wbP_nEoqif2Tt05Od9tPjfYgre55OPe69C3I7k/edit?usp=sharing)
-- [Master's thesis](http://arxiv.org/abs/2012.12697)
-- [Original article](https://www.overleaf.com/read/kmjyztpsknbp)
-- [Supplementary material](https://www.overleaf.com/read/tqpsxpcynrwh)
-- [Dissertation presentation](https://docs.google.com/presentation/d/1qPudTnvzP8hGGGDKaR8n9iOIMUOoeEIu2nGxD7D9tUE/edit?usp=sharing)
-- [Original documentation](https://luanab.github.io/phylolib/index.html)
-- [Usage video](https://youtu.be/v_pCZMlCyRY)
-- [Docker deployment video](https://youtu.be/hr0iBjTeV1U)
-- [Original repository](https://github.com/luanab/phylolib)
-
 ## Usage
 
 To execute a command of this command line application you should type the name of the library followed by the command
