@@ -28,7 +28,7 @@ The Javadoc documentation of the library can be found [here](https://phyloviz.gi
 
 To execute a command of this command line application you should type the name of the library followed by the command
 name, respective type and options. The usage of this command line application can be retrieved by running the command
-```phylolib help``` and looks like the following:
+`phylolib help` and looks like the following:
 
 ```
 Usage:
@@ -66,8 +66,8 @@ To build a local command-line distribution with the `phylolib` executable, you s
 
 1. Install Java JDK21 or higher.
 2. Open the terminal in the `PhyloLib` folder.
-3. Run the command ```./gradlew installDist``` to build the distribution.
-4. Run the command ```build/install/phylolib/bin/phylolib help``` to execute PhyloLib.
+3. Run the command `./gradlew installDist` to build the distribution.
+4. Run the command `build/install/phylolib/bin/phylolib help` to execute PhyloLib.
 
 You can also run the JAR directly:
 
@@ -79,12 +79,66 @@ java -jar build/libs/PhyloLib-1.0.0.jar help
 
 To build a Docker image for this project and execute it, you should:
 
-1. Install Docker and run ```./gradlew jar``` to compile the JAR.
+1. Install Docker and run `./gradlew jar` to compile the JAR.
 2. Open the terminal in the `PhyloLib` folder.
-3. Run the command ```docker build -t phylolib:1.0.0 .``` to build the Docker image.
+3. Run the command `docker build -t phylolib:1.0.0 .` to build the Docker image.
 4. Run the command
-   ```docker run --rm -v $HOME/<DIRECTORY>/files:/files -v $HOME/<DIRECTORY>/logs:/logs phylolib:1.0.0 phylolib help``` to
+   `docker run --rm -v $HOME/<DIRECTORY>/files:/files -v $HOME/<DIRECTORY>/logs:/logs phylolib:1.0.0 phylolib help` to
    execute the Docker image.
+
+Release images are published under the PHYLOViZ Docker Hub organization as `phyloviz/phylolib`.
+
+## Nextflow pipeline
+
+The repository includes a Nextflow pipeline for reproducible, containerized execution of the distance-based workflow.
+The distance matrix is computed once and reused by every requested inference algorithm.
+
+```
+nextflow run main.nf -profile docker \
+  --dataset profiles.tsv --dataset_format ml \
+  --distance hamming \
+  --algorithm goeburst,upgma,saitounei \
+  --outdir results
+```
+
+This creates:
+
+```
+results/
+  execution_report.html
+  matrix/
+    matrix.txt
+  trees/
+    goeburst.newick
+    upgma.newick
+    saitounei.newick
+```
+
+The Docker profile uses `phyloviz/phylolib:1.0.0` by default. When testing a locally built image, override it with:
+
+```
+nextflow run main.nf -profile docker \
+  --container <YOUR_LOCAL_IMAGE> \
+  --dataset profiles.tsv --dataset_format ml \
+  --distance hamming \
+  --algorithm goeburst,upgma,saitounei \
+  --outdir results
+```
+
+The most relevant parameters are:
+
+```
+--dataset          Input dataset path.
+--dataset_format   Input dataset format: fasta, ml, or snp.
+--distance         Distance model: hamming, grapetree, or kimura.
+--algorithm        Comma-separated inference algorithms.
+--matrix_format    Distance matrix format: symmetric or asymmetric.
+--tree_format      Tree output format: newick or nexus.
+--lvs              goeBURST locus variant limit. Default: 3.
+--force_dense      Force dense matrix mode. Default: false.
+--outdir           Output directory. Default: results.
+--container        Docker image used by the docker profile.
+```
 
 ## License
 
