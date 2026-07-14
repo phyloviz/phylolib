@@ -17,10 +17,12 @@ and exposes multiple distance models and phylogenetic inference algorithms throu
 PhyloLib is implemented in Java 21 and includes unit and integration tests, continuous integration, example datasets,
 Docker support, and a Nextflow pipeline for reproducible and containerized execution.
 
-A pre-built [Docker image](https://hub.docker.com/r/gonfrutuoso/phylolib) is available on Docker Hub.
+A pre-built [Docker image](https://hub.docker.com/r/phyloviz/phylolib) is available on Docker Hub.
 
 The unit tests and benchmarks developed for this library are available in
 the [test folder](https://github.com/phyloviz/phylolib/tree/master/PhyloLib/src/test/java/pt/ist/phylolib) of the code.
+
+The Javadoc documentation of the library can be found [here](https://phyloviz.github.io/phylolib/).
 
 ## Usage
 
@@ -58,26 +60,30 @@ dictated by the order in which they are provided.
 For example, in the execution above, the order in which the commands would be executed would be distance and then
 algorithm and not algorithm and then distance.
 
-## JAR
+## Installation
 
-To compile this project into a JAR and execute it, you should:
+To build a local command-line distribution with the `phylolib` executable, you should:
 
-1. Install Gradle and Java JDK21 or higher.
-2. Open the terminal in the project's folder.
-3. Run the command ```gradle clean``` to clean the project.
-4. Run the command ```gradle jar``` to build the JAR.
-5. Open the terminal in the folder *build/libs* of the project.
-6. Run the command ```java -jar PhyloLib-1.0-SNAPSHOT.jar help``` to execute the JAR.
+1. Install Java JDK21 or higher.
+2. Open the terminal in the `PhyloLib` folder.
+3. Run the command ```./gradlew installDist``` to build the distribution.
+4. Run the command ```build/install/phylolib/bin/phylolib help``` to execute PhyloLib.
+
+You can also run the JAR directly:
+
+```
+java -jar build/libs/PhyloLib-1.0.0.jar help
+```
 
 ## Docker
 
 To build a Docker image for this project and execute it, you should:
 
-1. Install Docker and compile the JAR of this project.
-2. Open the terminal in the project's folder.
-3. Run the command ```docker build -t phylolib .``` to build the Docker image.
+1. Install Docker and run ```./gradlew jar``` to compile the JAR.
+2. Open the terminal in the `PhyloLib` folder.
+3. Run the command ```docker build -t phylolib:1.0.0 .``` to build the Docker image.
 4. Run the command
-   ```docker run --rm -v $HOME/<DIRECTORY>/files:/files -v $HOME/<DIRECTORY>/logs:/logs phylolib:latest help``` to
+   ```docker run --rm -v $HOME/<DIRECTORY>/files:/files -v $HOME/<DIRECTORY>/logs:/logs phylolib:1.0.0 phylolib help``` to
    execute the Docker image.
 
 ## License

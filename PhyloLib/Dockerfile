@@ -1,5 +1,10 @@
-FROM openjdk:21-jdk-alpine
+FROM eclipse-temurin:21-jre-alpine
 
-COPY build/libs/PhyloLib-1.0-SNAPSHOT.jar app.jar
+WORKDIR /app
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+COPY build/libs/PhyloLib-1.0.0.jar /app/phylolib.jar
+COPY docker/phylolib /usr/local/bin/phylolib
+
+RUN chmod +x /usr/local/bin/phylolib
+
+CMD ["phylolib", "help"]
