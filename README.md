@@ -24,6 +24,14 @@ the [test folder](https://github.com/phyloviz/phylolib/tree/master/PhyloLib/src/
 
 The Javadoc documentation of the library can be found [here](https://phyloviz.github.io/phylolib/).
 
+## Contents
+
+- [Usage](#usage)
+- [Installation](#installation)
+- [Docker](#docker)
+- [Reproducible Nextflow Pipeline](#reproducible-nextflow-pipeline)
+- [License](#license)
+
 ## Usage
 
 To execute a command of this command line application you should type the name of the library followed by the command
@@ -88,15 +96,63 @@ To build a Docker image for this project and execute it, you should:
 
 Release images are published under the PHYLOViZ Docker Hub organization as `phyloviz/phylolib`.
 
-## Nextflow pipeline
+## Reproducible Nextflow Pipeline
 
 The repository includes a Nextflow pipeline for reproducible, containerized execution of the distance-based workflow.
 The distance matrix is computed once and reused by every requested inference algorithm.
 
-To run the pipeline, install [Nextflow](https://www.nextflow.io/docs/latest/install.html) and Docker first. The Docker
-profile uses the published `phyloviz/phylolib:1.0.0` image by default, so Docker will pull it automatically when the
-pipeline is launched. If you are testing local changes before a release, build the image as described in the Docker
-section and pass it with `--container`.
+### Install requirements
+
+Before running the pipeline, install the following tools.
+
+1. Install Java 17 or higher. Nextflow requires Java 17 or higher.
+
+```
+java -version
+```
+
+2. Install Nextflow.
+
+```
+curl -s https://get.nextflow.io | bash
+chmod +x nextflow
+mkdir -p $HOME/.local/bin
+mv nextflow $HOME/.local/bin/
+```
+
+Make sure `$HOME/.local/bin` is available in your `PATH`. Then confirm that Nextflow works:
+
+```
+nextflow info
+```
+
+3. Install Docker and confirm that it works.
+
+```
+docker --version
+docker run hello-world
+```
+
+4. Confirm that the PhyloLib Docker image is available.
+
+```
+docker pull phyloviz/phylolib:1.0.0
+docker run --rm phyloviz/phylolib:1.0.0 phylolib help
+```
+
+The Docker profile uses `phyloviz/phylolib:1.0.0` by default. If you are testing local changes before a release, build
+the image as described in the Docker section and pass it with `--container`.
+
+### Run the pipeline
+
+The pipeline is defined in the repository root:
+
+```
+main.nf
+nextflow.config
+```
+
+Run the pipeline from the repository root:
 
 ```
 nextflow run main.nf -profile docker \
@@ -106,7 +162,9 @@ nextflow run main.nf -profile docker \
   --outdir results
 ```
 
-This creates:
+### Outputs
+
+The command creates:
 
 ```
 results/
