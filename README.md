@@ -93,6 +93,11 @@ Release images are published under the PHYLOViZ Docker Hub organization as `phyl
 The repository includes a Nextflow pipeline for reproducible, containerized execution of the distance-based workflow.
 The distance matrix is computed once and reused by every requested inference algorithm.
 
+To run the pipeline, install [Nextflow](https://www.nextflow.io/docs/latest/install.html) and Docker first. The Docker
+profile uses the published `phyloviz/phylolib:1.0.0` image by default, so Docker will pull it automatically when the
+pipeline is launched. If you are testing local changes before a release, build the image as described in the Docker
+section and pass it with `--container`.
+
 ```
 nextflow run main.nf -profile docker \
   --dataset profiles.tsv --dataset_format ml \
