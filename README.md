@@ -86,6 +86,13 @@ To build a Docker image for this project and execute it, you should:
    ```docker run --rm -v $HOME/<DIRECTORY>/files:/files -v $HOME/<DIRECTORY>/logs:/logs phylolib:1.0.0 phylolib help``` to
    execute the Docker image.
 
+Release images are published for both `linux/amd64` and `linux/arm64`. To build and publish a multi-platform image
+manually, use Docker Buildx from the `PhyloLib` folder:
+
+```
+docker buildx build --platform linux/amd64,linux/arm64 -t phyloviz/phylolib:1.0.0 --push .
+```
+
 ## License
 
 PhyloLib is licensed under the [MIT License](LICENSE).
