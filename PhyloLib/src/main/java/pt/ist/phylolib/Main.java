@@ -13,6 +13,10 @@ import java.io.InputStream;
 public class Main {
 
 	public static void main(String[] args) {
+		System.exit(run(args));
+	}
+
+	static int run(String[] args) {
 		long programStart = System.nanoTime();
 		try {
 			Arguments arguments = Arguments.parse(args);
@@ -29,14 +33,16 @@ public class Main {
 			} else
 				try (InputStream usage = Main.class.getClassLoader().getResourceAsStream("usage.txt")) {
                     assert usage != null;
-                    System.out.write(usage.readAllBytes());
+					System.out.write(usage.readAllBytes());
 					System.out.flush();
 				}
+			return 0;
 		} catch (ArgumentException exception) {
 			Log.error(exception.getMessage());
 		} catch (Exception exception) {
 			Log.exception(exception);
 		}
+		return 1;
 	}
 
 }
