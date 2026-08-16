@@ -34,6 +34,38 @@ public class GoeBURSTFullMSTTest {
     }
 
     @Test
+    public void process_TwoDistinctIdsAtZeroDistance_ProducesOneZeroWeightEdge() {
+        Tree tree = process(new Matrix(true, new String[] { "A", "B" }, new double[][] {
+                {},
+                { 0.0 }
+        }));
+
+        assertEquals(tree.ids().length, 2);
+        assertEquals(tree.edges().count(), 1);
+        assertEquals(tree.edges().findFirst().orElseThrow().distance(), 0.0);
+        assertTreeInvariants(tree);
+    }
+
+    @Test
+    public void process_PreservesDistinctZeroDistanceRowsAsOneConnectedTree() {
+        Tree tree = process(zeroDistanceFixture());
+
+        assertEquals(new HashSet<>(Arrays.asList(tree.ids())), Set.of("A", "B", "C"));
+        assertEquals(tree.edges().count(), 2);
+        assertTrue(undirectedEdges(tree).contains("A-B"));
+        assertTreeInvariants(tree);
+    }
+
+    @Test
+    public void process_ZeroDistanceDoesNotContributeToPositiveLvStatistics() {
+        Tree tree = process(zeroDistanceFixture());
+
+        // A--B is zero and belongs to no LV bucket. Counting it as LV1 would
+        // instead make B--C win the tied level-1 comparison.
+        assertEquals(undirectedEdges(tree), Set.of("A-B", "A-C"));
+    }
+
+    @Test
     public void process_ConnectsProfilesThatThresholdedGoeBurstLeavesInAForest() {
         Matrix matrix = new Matrix(true, new String[] { "A", "B", "C" }, new double[][] {
                 {},
@@ -89,11 +121,36 @@ public class GoeBURSTFullMSTTest {
     }
 
     @Test
+    public void minHeap_ZeroWeightCandidateCanBecomeMinimum() {
+        int[] distance = { 0, 2, 3 };
+        MinHeap heap = new MinHeap(distance.length,
+                (left, right) -> Integer.compare(distance[left], distance[right]));
+
+        assertEquals(heap.extractMin(), 0);
+        distance[2] = 0;
+        heap.updateKey(2);
+
+        assertEquals(heap.extractMin(), 2);
+        assertEquals(heap.extractMin(), 1);
+    }
+
+    @Test
     public void process_IsInvariantToMatrixRowPermutation() {
         Matrix original = referenceFixture();
         Matrix permuted = permute(original, 2, 4, 0, 3, 1);
 
         assertEquals(undirectedEdges(process(permuted)), undirectedEdges(process(original)));
+    }
+
+    @Test
+    public void process_IsDeterministicAndPermutationInvariantWithZeroDistanceRows() {
+        Matrix original = zeroDistanceFixture();
+        Matrix permuted = permute(original, 2, 0, 1);
+
+        Tree first = process(original);
+        Tree second = process(original);
+        assertEquals(first.edges().toList(), second.edges().toList());
+        assertEquals(undirectedEdges(process(permuted)), undirectedEdges(first));
     }
 
     @Test
@@ -128,6 +185,31 @@ public class GoeBURSTFullMSTTest {
     }
 
     @Test
+    public void process_RejectsNegativeOffDiagonalDistance() {
+        Matrix negative = new Matrix(true, new String[] { "A", "B" }, new double[][] {
+                {},
+                { -1.0 }
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> process(negative));
+    }
+
+    @Test
+    public void process_RejectsNonZeroDiagonalDistance() {
+        Matrix nonZeroDiagonal = new Matrix(true, new String[] { "A", "B" }, new double[][] {
+                {},
+                { 1.0 }
+        }) {
+            @Override
+            public double distance(int i, int j) {
+                return i == j ? 1.0 : super.distance(i, j);
+            }
+        };
+
+        assertThrows(IllegalArgumentException.class, () -> process(nonZeroDiagonal));
+    }
+
+    @Test
     public void process_RejectsBoundedCoverageWithoutCheckingConcreteStorageType() {
         Matrix bounded = new BoundedCoverageMatrix();
 
@@ -153,6 +235,14 @@ public class GoeBURSTFullMSTTest {
                 { 4.0, 2.0 },
                 { 4.0, 2.0, 2.0 },
                 { 2.0, 4.0, 6.0, 4.0 }
+        });
+    }
+
+    private Matrix zeroDistanceFixture() {
+        return new Matrix(true, new String[] { "A", "B", "C" }, new double[][] {
+                {},
+                { 0.0 },
+                { 1.0, 1.0 }
         });
     }
 
