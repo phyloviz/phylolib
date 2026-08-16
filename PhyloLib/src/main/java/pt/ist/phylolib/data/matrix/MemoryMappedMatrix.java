@@ -29,9 +29,9 @@ public class MemoryMappedMatrix extends Matrix {
     public double distance(int i, int j) {
         double dist = Double.NaN;
         try {
-            dist = GraphMapper.getDistance(baseFileName, i, j, isSymmetric());
-            if (isSymmetric() && dist == Double.NaN) {
-                dist = GraphMapper.getDistance(baseFileName, j, i, isSymmetric());
+            dist = GraphMapper.getDistance(baseFileName, i, j, symmetric());
+            if (symmetric() && dist == Double.NaN) {
+                dist = GraphMapper.getDistance(baseFileName, j, i, symmetric());
             }
         } catch (IOException e) {
             throw new RuntimeException("Error accessing distance from memory-mapped matrix", e);

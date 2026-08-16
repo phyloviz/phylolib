@@ -1,10 +1,10 @@
 package pt.ist.phylolib.command.algorithm;
 
 import pt.ist.phylolib.command.ICommand;
+import pt.ist.phylolib.cli.Options;
+import pt.ist.phylolib.data.matrix.DistanceScope;
 import pt.ist.phylolib.data.matrix.Matrix;
-import pt.ist.phylolib.data.matrix.SparseMatrix;
 import pt.ist.phylolib.data.tree.Tree;
-import pt.ist.phylolib.logging.Log;
 
 /**
  * Responsible for calculating a {@link Tree phylogenetic tree} from a
@@ -13,13 +13,18 @@ import pt.ist.phylolib.logging.Log;
 public abstract class Algorithm implements ICommand<Matrix, Tree> {
 
     /**
-     * Indicates whether this algorithm supports sparse matrices.
-     * Override to return false for algorithms that require dense matrices.
-     * 
-     * @return true if sparse matrices are supported, false otherwise
+     * Declares the distance scope this algorithm needs. Complete is the
+     * conservative default until an algorithm proves a bounded scope.
      */
-    public boolean supportsSparseMatrix() {
-        return true; // Default: assume sparse support (GoeBURST and Edmonds)
+    public DistanceScope requiredDistanceScope() {
+        return DistanceScope.Complete.INSTANCE;
+    }
+
+    /**
+     * Configures a scope that depends on user input before the matrix is
+     * loaded. Most algorithms have a fixed requirement and do nothing here.
+     */
+    public void configureRequiredDistanceScope(Options options) {
     }
 
     /**
@@ -36,17 +41,9 @@ public abstract class Algorithm implements ICommand<Matrix, Tree> {
 
     @Override
     public Tree process(Matrix matrix) {
-        // Validate sparse matrix compatibility
-        if (matrix instanceof SparseMatrix && !supportsSparseMatrix()) {
-            String algorithmName = this.getClass().getSimpleName();
-            Log.error("SPARSE_UNSUPPORTED",
-                    "Algorithm %s does not support sparse matrices. Use --force-dense flag to load a dense matrix instead.",
-                    algorithmName);
-            throw new UnsupportedOperationException(
-                    String.format(
-                            "Algorithm %s requires a dense matrix. The matrix was automatically loaded as sparse due to its size. Use --force-dense to override.",
-                            algorithmName));
-        }
+        if (!matrix.distanceScope().covers(requiredDistanceScope()))
+            throw new IllegalArgumentException("Algorithm " + getClass().getSimpleName() + " requires "
+                    + requiredDistanceScope() + " distance scope but matrix provides " + matrix.distanceScope() + ".");
 
         return processImpl(matrix);
     }

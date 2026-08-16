@@ -12,10 +12,14 @@ public enum Option {
     MATRIX('m', Format.FILE),
     TREE('t', Format.FILE),
     LVS('l', Format.NATURAL, "3"),
+<<<<<<< HEAD
     FORCE_DENSE('f', Format.FLAG, "false"),
     ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true"),
     INPUT('i', Format.FILE),
     PREV_STATE('p', Format.PATH);
+=======
+    FORCE_DENSE('f', Format.FLAG, "false");
+>>>>>>> 34b3519 (feat: add goeBURST Full MST and distance-aware matrix storage)
 
     private final String alias;
     private final Format format;

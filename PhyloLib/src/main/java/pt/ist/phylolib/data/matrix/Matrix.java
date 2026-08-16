@@ -6,6 +6,7 @@ public class Matrix {
     private final String[] ids;
     private final double[][] distances;
     private final IDistance distance;
+    private final DistanceScope distanceScope;
 
     public Matrix(boolean symmetric, String[] ids) {
         this.symmetric = symmetric;
@@ -15,17 +16,27 @@ public class Matrix {
     }
 
     public Matrix(boolean symmetric, String[] ids, IDistance distance) {
+        this(symmetric, ids, distance, DistanceScope.Complete.INSTANCE);
+    }
+
+    protected Matrix(boolean symmetric, String[] ids, IDistance distance, DistanceScope distanceScope) {
         this.symmetric = symmetric;
         this.ids = ids;
         this.distances = new double[ids.length][];
         this.distance = distance;
+        this.distanceScope = distanceScope;
     }
 
     public Matrix(boolean symmetric, String[] ids, double[][] distances) {
+        this(symmetric, ids, distances, DistanceScope.Complete.INSTANCE);
+    }
+
+    protected Matrix(boolean symmetric, String[] ids, double[][] distances, DistanceScope distanceScope) {
         this.symmetric = symmetric;
         this.ids = ids;
         this.distances = distances;
         this.distance = null;
+        this.distanceScope = distanceScope;
     }
 
     public String[] ids() {
@@ -36,8 +47,18 @@ public class Matrix {
         return distances.length;
     }
 
-    protected boolean isSymmetric() {
+    /**
+     * Indicates whether this matrix is represented as symmetric.
+     */
+    public boolean symmetric() {
         return symmetric;
+    }
+
+    /**
+     * Describes which pairwise distances this matrix retains.
+     */
+    public DistanceScope distanceScope() {
+        return distanceScope;
     }
 
     public double distance(int i, int j) {
@@ -64,6 +85,8 @@ public class Matrix {
      * corrected
      */
     public Matrix correct(ICorrection correction) {
+        if (!(distanceScope instanceof DistanceScope.Complete))
+            throw new UnsupportedOperationException("Distance correction requires complete pairwise matrix coverage.");
         // If matrix is lazy (distances is null), no change needed
 
         if (distance != null) {

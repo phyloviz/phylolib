@@ -14,12 +14,11 @@ import java.util.stream.Stream;
  * Responsible for parsing {@link Matrix distance matrices} from and to Strings.
  * Implements streaming write support for memory-efficient output of large
  * matrices.
- * Includes automatic optimization for Sparse Matrices on large datasets.
+ * Uses the matrix loading scope and storage override for large inputs.
  */
 public abstract class SymmetryParser extends MatrixParser {
 
-    // HEURISTIC: If matrix size > 10,000, we force Sparse Mode to avoid OOM.
-    private static final int SPARSE_THRESHOLD_SIZE = 10000;
+    private static final MatrixStoragePlanner STORAGE_PLANNER = new MatrixStoragePlanner();
 
     /**
      * Checks the symmetry of this distance matrix processor.
@@ -28,8 +27,21 @@ public abstract class SymmetryParser extends MatrixParser {
      */
     protected abstract boolean symmetric();
 
+    /**
+     * A protected seam keeps parser tests small while production uses the
+     * common large-matrix limit.
+     */
+    protected MatrixStoragePlanner storagePlanner() {
+        return STORAGE_PLANNER;
+    }
+
     @Override
     public final Matrix parse(Stream<String> data, Options options) {
+        return parse(data, DistanceScope.Complete.INSTANCE, Boolean.parseBoolean(options.get(Option.FORCE_DENSE)));
+    }
+
+    @Override
+    public final Matrix parse(Stream<String> data, DistanceScope requiredScope, boolean forceDense) {
         Iterator<String> iterator = data.iterator();
         String start;
 
@@ -42,16 +54,14 @@ public abstract class SymmetryParser extends MatrixParser {
             return null;
 
         String[] ids = new String[size];
-        boolean forceDense = Boolean.parseBoolean(options.get(Option.FORCE_DENSE));
-        boolean algorithmSupportsSparse = Boolean.parseBoolean(options.get(Option.ALGORITHM_SUPPORTS_SPARSE));
-
-        // 2. Decide Mode: Sparse vs Dense
-        if (size > SPARSE_THRESHOLD_SIZE && !forceDense && algorithmSupportsSparse) {
-            Double lvs = Double.parseDouble(options.get(Option.LVS)); // The distance threshold
-            return parseSparse(iterator, size, ids, lvs);
-        } else {
-            return parseDense(iterator, size, ids);
-        }
+        return switch (storagePlanner().choose(size, symmetric(), requiredScope, forceDense)) {
+            case DENSE -> parseDense(iterator, size, ids);
+            case THRESHOLD_SPARSE -> {
+                if (!(requiredScope instanceof DistanceScope.Bounded bounded))
+                    throw new IllegalStateException("Threshold sparse storage requires a bounded distance scope.");
+                yield parseThresholdSparse(iterator, size, ids, bounded.maxDistance());
+            }
+        };
     }
 
     /**
@@ -131,11 +141,11 @@ public abstract class SymmetryParser extends MatrixParser {
     }
 
     /**
-     * Optimized parsing for massive matrices.
-     * Uses Filter-on-Read to discard distances > 500.0.
-     * Returns a SparseMatrix.
+     * Threshold-filtered parsing for a policy that has proven no larger
+     * distance can influence the active algorithm.
      */
-    private Matrix parseSparse(Iterator<String> iterator, int size, String[] ids, Double lvs) {
+    private Matrix parseThresholdSparse(Iterator<String> iterator, int size, String[] ids,
+                                        double retainedThreshold) {
         // CSR Storage
         int[][] colIndices = new int[size][];
         double[][] values = new double[size][];
@@ -178,7 +188,7 @@ public abstract class SymmetryParser extends MatrixParser {
                 double val = Double.parseDouble(valStr);
 
                 // FILTER: Only store relevant edges
-                if (val <= lvs) {
+                if (val <= retainedThreshold) {
                     tempCols[count] = col;
                     tempVals[count] = val;
                     count++;
@@ -196,7 +206,9 @@ public abstract class SymmetryParser extends MatrixParser {
             i++;
         }
 
-        return i == size ? new SparseMatrix(symmetric(), ids, colIndices, values) : null;
+        return i == size
+                ? new ThresholdSparseMatrix(symmetric(), ids, colIndices, values, retainedThreshold)
+                : null;
     }
 
     @Override
@@ -225,7 +237,7 @@ public abstract class SymmetryParser extends MatrixParser {
             int cols = symmetric() ? i : size;
             for (int j = 0; j < cols; j++) {
                 writer.write('\t');
-                // Note: SparseMatrix will return Infinity for missing values.
+                // Threshold-filtered matrices return Infinity for unavailable values.
                 // Standard Dense output expects a value here.
                 writer.write(String.valueOf(matrix.distance(i, j)));
             }

@@ -19,11 +19,6 @@ public abstract class NeighbourJoining extends Algorithm {
 	private Map<Integer, Cluster> clusters;
 
 	@Override
-	public boolean supportsSparseMatrix() {
-		return false; // NJ algorithms require dense matrices
-	}
-
-	@Override
 	protected Tree processImpl(Matrix matrix) {
 		Tree tree = init(matrix);
 		while (clusters.size() > 2) {

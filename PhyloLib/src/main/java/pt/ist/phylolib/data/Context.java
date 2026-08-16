@@ -1,9 +1,12 @@
 package pt.ist.phylolib.data;
 
 import pt.ist.phylolib.cli.Data;
+import pt.ist.phylolib.cli.Option;
 import pt.ist.phylolib.cli.Options;
+import pt.ist.phylolib.command.algorithm.Algorithm;
 import pt.ist.phylolib.command.ICommand;
 import pt.ist.phylolib.data.dataset.Dataset;
+import pt.ist.phylolib.data.matrix.DistanceScope;
 import pt.ist.phylolib.data.matrix.Matrix;
 import pt.ist.phylolib.data.tree.Tree;
 import pt.ist.phylolib.exception.MissingInputException;
@@ -33,7 +36,7 @@ public final class Context {
 	 *                               previous dataset exists
 	 */
 	public Dataset getDataset(Options options) throws MissingInputException {
-		return dataset = IReader.read(options, dataset, Data.DATASET, null);
+		return dataset = IReader.read(options, dataset, Data.DATASET);
 	}
 
 	/**
@@ -45,10 +48,14 @@ public final class Context {
 	 *                               previous matrix exists
 	 */
 	public Matrix getMatrix(Options options) throws MissingInputException {
+		DistanceScope requiredScope = currentCommand instanceof Algorithm algorithm
+				? algorithm.requiredDistanceScope()
+				: DistanceScope.Complete.INSTANCE;
+		boolean forceDense = Boolean.parseBoolean(options.remove(Option.FORCE_DENSE));
 		boolean tolerant = currentCommand instanceof pt.ist.phylolib.command.algorithm.Algorithm
 				&& !((pt.ist.phylolib.command.algorithm.Algorithm) currentCommand).requiresMatrix();
 		try {
-			return matrix = IReader.read(options, matrix, Data.MATRIX, currentCommand);
+			return matrix = IReader.readMatrix(options, matrix, requiredScope, forceDense);
 		} catch (MissingInputException exception) {
 			if (tolerant)
 				return null; // the algorithm supplies its own input (e.g. Edmonds)
@@ -58,7 +65,7 @@ public final class Context {
 
 	/**
 	 * Sets the current command being executed.
-	 * Used to determine algorithm compatibility for sparse matrix auto-detection.
+	 * Used to obtain the active algorithm's typed matrix scope.
 	 *
 	 * @param command the command instance
 	 */
@@ -84,7 +91,7 @@ public final class Context {
 	 *                               previous tree exists
 	 */
 	public Tree getTree(Options options) throws MissingInputException {
-		return tree = IReader.read(options, tree, Data.TREE, null);
+		return tree = IReader.read(options, tree, Data.TREE);
 	}
 
 	/**

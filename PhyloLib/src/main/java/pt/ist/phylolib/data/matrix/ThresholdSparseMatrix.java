@@ -2,19 +2,30 @@ package pt.ist.phylolib.data.matrix;
 
 import java.util.Arrays;
 
-public final class SparseMatrix extends Matrix {
+/**
+ * A threshold-filtered distance matrix. Values above the retained threshold
+ * are unavailable and therefore read as positive infinity.
+ */
+public final class ThresholdSparseMatrix extends Matrix {
 
     private final int[][] colIndices;
     private final double[][] values;
     private final int size;
     private final boolean symmetric;
+    private final double retainedThreshold;
 
-    public SparseMatrix(boolean symmetric, String[] ids, int[][] colIndices, double[][] values) {
-        super(symmetric, ids, (double[][]) null); // Pass null to parent
+    public ThresholdSparseMatrix(boolean symmetric, String[] ids, int[][] colIndices, double[][] values,
+                                 double retainedThreshold) {
+        super(symmetric, ids, (double[][]) null, new DistanceScope.Bounded(retainedThreshold));
         this.size = ids.length;
         this.colIndices = colIndices;
         this.values = values;
         this.symmetric = symmetric;
+        this.retainedThreshold = retainedThreshold;
+    }
+
+    public double retainedThreshold() {
+        return retainedThreshold;
     }
 
     @Override
