@@ -7,6 +7,13 @@ public class Matrix {
     private final double[][] distances;
     private final IDistance distance;
 
+    public Matrix(boolean symmetric, String[] ids) {
+        this.symmetric = symmetric;
+        this.ids = ids;
+        this.distances = new double[ids.length][];
+        this.distance = null;
+    }
+
     public Matrix(boolean symmetric, String[] ids, IDistance distance) {
         this.symmetric = symmetric;
         this.ids = ids;
@@ -27,6 +34,10 @@ public class Matrix {
 
     public int size() {
         return distances.length;
+    }
+
+    protected boolean isSymmetric() {
+        return symmetric;
     }
 
     public double distance(int i, int j) {

@@ -4,6 +4,8 @@ import pt.ist.phylolib.command.algorithm.Algorithm;
 import pt.ist.phylolib.data.matrix.Matrix;
 import pt.ist.phylolib.data.tree.Edge;
 import pt.ist.phylolib.data.tree.Tree;
+import pt.ist.phylolib.data.memorymapper.GraphMapper;
+import pt.ist.phylolib.command.distance.GrapeTree;
 
 import java.util.*;
 
@@ -15,12 +17,58 @@ public final class Edmonds extends Algorithm {
 
 	private Comparator<EdgeNode> comparator;
 	private BinomialHeap[] queues;
+
+	/** A union-find data structure to maintain the weakly connected components of the forest */
 	private DisjointSet weaklyConnected;
+
+	/** A union-find data structure to maintain the strongly connected components of the forest */
 	private WeightedDisjointSet stronglyConnected;
+
+	/** A list of vertices to be processed. Initialized with all the vertices in 𝑉 */
 	private LinkedList<Integer> roots;
 	private Forest forest;
+
+	/**  Array that for each i stores a node from the forest which is associated with the minimum weight edge incident in node i */
 	private EdgeNode[] inEdgeNode;
+
+	/** array stores the leaf nodes of the forest */
+    protected EdgeNode[] leaves;
+
+	/** A list that stores for each representative cycle vertex 𝑣 the list of cycle edge nodes in F */
 	private List<List<EdgeNode>> edgeNodeCycle;
+
+	/********************************************
+	 * External Memory auxiliary data structures
+	 ********************************************/
+
+
+    /**
+     * Maps SCC representative ID to the set of all node IDs that have been merged into this SCC.
+     * Updated during contractionPhase when cycles are detected and nodes are unified.
+     * Used during queue re-initialization to load edges for all nodes in the SCC.
+     */
+    private Map<Integer, Set<Integer>> sccComposition;
+
+    /**
+     * Tracks the number of edges examined for each node when running with lazy loading with on-demand edge computation.
+     * If a node's numExaminedEdges reaches the numNeighbors limit, no more nearest neighbor searches will be
+     * performed for that node and instead we compute the entire list of incoming edges
+     */
+    private int[] numExaminedEdges;
+
+    /**
+     * Used to track if a SCC has been previously initialized with on-demand edge computation and 
+     * with nearest neighbor search. If it has and it failed to find an adequate edge during the
+     * contraction phase, prevFailure[root] is set to true and the queue must be re-initialized
+     * with the complete list of incoming edges to that SCC
+     */
+    private boolean[] prevFailure = null;
+
+	private Map<Integer, Integer> nodeMap;
+
+	/** The base file name for the externally stored input graph */
+	private String baseFileName;
+
 
 	@Override
 	protected Tree processImpl(Matrix matrix) {
@@ -44,9 +92,7 @@ public final class Edmonds extends Algorithm {
 
 	private void init(Matrix matrix) {
 		int size = matrix.size();
-		this.comparator = Comparator.comparing(EdgeNode::getEdge, Comparator.comparingDouble(this::getAdjustedWeight)
-				.thenComparingInt(i -> Integer.min(i.from(), i.to()))
-				.thenComparingInt(i -> Integer.max(i.from(), i.to())));
+		this.comparator = initComparator();
 		this.stronglyConnected = new WeightedDisjointSet(size);
 		this.weaklyConnected = new DisjointSet(size);
 		this.queues = new BinomialHeap[size];
@@ -64,6 +110,12 @@ public final class Edmonds extends Algorithm {
 				if (i != j)
 					queues[j].push(new EdgeNode(new Edge(i, j, matrix.distance(i, j))));
 		}
+	}
+
+	private Comparator<EdgeNode> initComparator() {
+		return Comparator.comparing(EdgeNode::getEdge, Comparator.comparingDouble(this::getAdjustedWeight)
+				.thenComparingInt(i -> Integer.min(i.from(), i.to()))
+				.thenComparingInt(i -> Integer.max(i.from(), i.to())));
 	}
 
 	private void contract(int u, int v, int root, EdgeNode min) {

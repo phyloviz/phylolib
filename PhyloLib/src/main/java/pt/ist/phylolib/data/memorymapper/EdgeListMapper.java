@@ -740,4 +740,34 @@ public final class EdgeListMapper {
 
         return minEdge;
     }
+
+    protected static double getEdgeDistance(String filename, int sourceId, int destId) throws IOException {
+        String nodeFileName = filename.replace("_edges.dat", "");
+        nodeFileName += "_edges_node" + destId + ".dat";
+
+        try (RandomAccessFile raf = new RandomAccessFile(nodeFileName, "r");
+             FileChannel channel = raf.getChannel()) {
+
+            long fileSize = channel.size();
+            long currentOffset = HEADER_SIZE;
+            while (currentOffset < fileSize) {
+                // Map a sizeable chunk to avoid excessive mappings
+                int mappingSize = (int) Math.min(CHUNK_SIZE, fileSize - currentOffset);
+                MappedByteBuffer mbb = channel.map(FileChannel.MapMode.READ_ONLY, currentOffset, mappingSize);
+                mbb.order(ByteOrder.nativeOrder());
+
+                int edgesInChunk = mappingSize / BYTES_PER_EDGE;
+                for (int j = 0; j < edgesInChunk; j++) {
+                    int srcId = mbb.getInt();
+                    int dstId = mbb.getInt();
+                    double weight = mbb.getDouble();
+                    if (srcId == sourceId && dstId == destId) {
+                        return weight;
+                    }
+                }
+                currentOffset += mappingSize;
+            }
+        }
+        return Double.NaN; // Edge not found
+    }
 }
