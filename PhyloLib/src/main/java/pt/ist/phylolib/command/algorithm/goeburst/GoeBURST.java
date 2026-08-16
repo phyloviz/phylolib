@@ -4,6 +4,7 @@ import pt.ist.phylolib.cli.Option;
 import pt.ist.phylolib.cli.Options;
 import pt.ist.phylolib.command.algorithm.Algorithm;
 import pt.ist.phylolib.data.Context;
+import pt.ist.phylolib.data.matrix.DistanceScope;
 import pt.ist.phylolib.data.matrix.Matrix;
 import pt.ist.phylolib.data.tree.Edge;
 import pt.ist.phylolib.data.tree.Tree;
@@ -12,11 +13,28 @@ import java.util.Arrays;
 
 public class GoeBURST extends Algorithm {
 
-    private int lvs;
+    private int lvs = 3;
+    private boolean distanceScopeConfigured;
+
+    @Override
+    public DistanceScope requiredDistanceScope() {
+        return new DistanceScope.Bounded(lvs);
+    }
+
+    @Override
+    public void configureRequiredDistanceScope(Options options) {
+        if (distanceScopeConfigured)
+            return;
+        String configuredLvs = options.remove(Option.LVS);
+        lvs = Integer.parseInt(configuredLvs);
+        distanceScopeConfigured = true;
+    }
 
     @Override
     public void init(Context context, Options options) {
-        this.lvs = Integer.parseInt(options.remove(Option.LVS));
+        // Preserve direct programmatic use of init while the CLI configures
+        // the scope before loading the matrix.
+        configureRequiredDistanceScope(options);
     }
 
     @Override

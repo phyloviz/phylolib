@@ -4,6 +4,7 @@ import pt.ist.phylolib.cli.Arguments;
 import pt.ist.phylolib.cli.Command;
 import pt.ist.phylolib.cli.Options;
 import pt.ist.phylolib.cli.Parameters;
+import pt.ist.phylolib.command.algorithm.Algorithm;
 import pt.ist.phylolib.data.Context;
 import pt.ist.phylolib.exception.MissingInputException;
 import pt.ist.phylolib.logging.Log;
@@ -53,6 +54,11 @@ public interface ICommand<T, R> {
 				long startTime = System.nanoTime();
 
 				Options options = parameters.options();
+
+				// A matrix algorithm's distance scope must be known before its input
+				// is loaded so storage planning remains a typed data-layer concern.
+				if (component instanceof Algorithm algorithm)
+					algorithm.configureRequiredDistanceScope(options);
 
 				// Set current command in context before getting data
 				context.setCurrentCommand(component);

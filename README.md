@@ -35,7 +35,7 @@ Usage:
     phylolib help
     phylolib distance (hamming|grapetree|kimura) [options]
     phylolib correction (jukescantor) [options]
-    phylolib algorithm (goeburst|edmonds|sl|cl|upgma|upgmc|wpgma|wpgmc|saitounei|studierkepler|unj) [options]
+    phylolib algorithm (goeburst|goeburstfullmst|edmonds|sl|cl|upgma|upgmc|wpgma|wpgmc|saitounei|studierkepler|unj) [options]
     phylolib optimization (lbr) [options]
 
 Options:
@@ -44,8 +44,18 @@ Options:
     -m=<file>      --matrix=<file>    Input distance matrix file as <format>:<location> with format being (asymmetric|symmetric)
     -t=<file>      --tree=<file>      Input phylogenetic tree file as <format>:<location> with format being (newick|nexus)
     -l=<number>    --lvs=<number>     Limit of locus variants to consider using goeBURST algorithm [default: 3]
-    -f             --force-dense      Flag that allows forcing a dense matrix approach in algorithms that were using a sparse matrix automatically.
+    -f             --force-dense      Explicitly force heap-backed dense storage, overriding the automatic memory budget.
 ```
+
+`algorithm goeburst` remains the threshold-limited goeBURST implementation and uses `--lvs` (default: 3). When
+estimated complete dense storage exceeds the automatic 320 MiB raw-distance budget, it may use threshold-filtered
+storage retaining only distances through that bound; `--force-dense` retains all distances instead without changing
+goeBURST's threshold semantics.
+`algorithm goeburstfullmst` builds one complete goeBURST Full MST from a symmetric, complete matrix of positive
+integral LV distances. Matrix-only input has equal-frequency tie semantics because profile frequencies are not stored
+in the matrix format. When estimated complete dense storage exceeds the automatic 320 MiB raw-distance budget, it
+requires `--force-dense`, because the only current complete-pairwise storage is heap-backed dense storage.
+`--force-dense` changes storage only; it never changes an algorithm's distance scope.
 
 You can also run multiple commands by concatenating them with a ":" character like this:
 

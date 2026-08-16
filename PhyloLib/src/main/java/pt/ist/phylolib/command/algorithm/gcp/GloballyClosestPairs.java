@@ -21,11 +21,6 @@ public abstract class GloballyClosestPairs extends Algorithm {
   private PriorityQueue<Edge> edges;
 
   @Override
-  public boolean supportsSparseMatrix() {
-    return false; // GCP algorithms (UPGMA, WPGMA, etc.) require dense matrices
-  }
-
-  @Override
   protected Tree processImpl(Matrix matrix) {
     Tree tree = init(matrix);
     while (clusters.size() > 1) {
