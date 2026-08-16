@@ -15,8 +15,8 @@ import java.util.Set;
  * <p>
  * Unlike {@link GoeBURST}, this algorithm does not impose a user threshold. It
  * uses every observed LV level and fails if the input does not represent a
- * complete, finite, positive, integral distance graph between distinct
- * profiles.
+ * complete, finite, non-negative, integral distance graph between distinct
+ * matrix rows. Distinct IDs at distance zero remain separate vertices.
  */
 public final class GoeBURSTFullMST extends Algorithm {
 
@@ -41,6 +41,8 @@ public final class GoeBURSTFullMST extends Algorithm {
         int[] frequency = new int[size];
         Arrays.fill(frequency, 1);
 
+        // Parent presence, not distance, distinguishes a candidate from an
+        // unset vertex so legitimate zero-weight edges remain valid.
         int[] parent = new int[size];
         int[] distance = new int[size];
         boolean[] visited = new boolean[size];
@@ -95,19 +97,28 @@ public final class GoeBURSTFullMST extends Algorithm {
     }
 
     /**
-     * Returns the greatest observed LV level. For a valid complete integral
+     * Returns the greatest observed positive LV level. Distinct matrix rows
+     * may represent identical profiles, so an off-diagonal distance of zero is
+     * valid but belongs to no positive-LV bucket. For a valid complete integral
      * matrix, buckets above this level would be zero for every vertex and are
      * therefore comparator-equivalent to knowing the biological locus count.
      */
     private int validateDistances(Matrix matrix) {
         int maxLevel = 0;
+        for (int i = 0; i < matrix.size(); i++) {
+            double value = matrix.distance(i, i);
+            if (value != 0) {
+                throw new IllegalArgumentException(PREFIX + "zero diagonal distances; invalid value " + value
+                        + " for '" + matrix.ids()[i] + "'.");
+            }
+        }
         for (int i = 1; i < matrix.size(); i++) {
             for (int j = 0; j < i; j++) {
                 double value = matrix.distance(i, j);
-                if (!Double.isFinite(value) || value <= 0 || value != Math.rint(value)
+                if (!Double.isFinite(value) || value < 0 || value != Math.rint(value)
                         || value > Integer.MAX_VALUE) {
                     throw new IllegalArgumentException(PREFIX
-                            + "finite, positive, integral off-diagonal LV distances; invalid value "
+                            + "finite, non-negative, integral off-diagonal LV distances; invalid value "
                             + value + " between '" + matrix.ids()[i] + "' and '" + matrix.ids()[j] + "'.");
                 }
                 maxLevel = Math.max(maxLevel, (int) value);
@@ -121,7 +132,10 @@ public final class GoeBURSTFullMST extends Algorithm {
         int[][] lv = new int[size][maxLevel];
         for (int i = 1; i < size; i++) {
             for (int j = 0; j < i; j++) {
-                int level = (int) matrix.distance(i, j) - 1;
+                int distance = (int) matrix.distance(i, j);
+                if (distance == 0)
+                    continue;
+                int level = distance - 1;
                 lv[i][level]++;
                 lv[j][level]++;
             }
