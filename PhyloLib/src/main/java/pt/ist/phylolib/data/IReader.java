@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ist.phylolib.cli.Data;
 import pt.ist.phylolib.cli.Options;
-import pt.ist.phylolib.command.ICommand;
 import pt.ist.phylolib.exception.MissingInputException;
 import pt.ist.phylolib.logging.Log;
+import pt.ist.phylolib.data.matrix.DistanceScope;
+import pt.ist.phylolib.data.matrix.Matrix;
+import pt.ist.phylolib.data.matrix.MatrixParser;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,8 +39,6 @@ public interface IReader<T> {
      * @param options  the options to search for the specific option
      * @param previous the previous value for this data type
      * @param data     the data type to read
-     * @param command  the current command being executed (for algorithm
-     *                 compatibility checking)
      * @param <T>      the input data type
      * @return the input read from the option for the data type or the previous
      *         value for that data type
@@ -47,7 +47,7 @@ public interface IReader<T> {
      *                               type is null
      */
     @SuppressWarnings("unchecked")
-    static <T> T read(Options options, T previous, Data data, ICommand<?, ?> command)
+    static <T> T read(Options options, T previous, Data data)
             throws MissingInputException {
         String input = options.remove(data.option());
         if (input != null) {
@@ -56,17 +56,7 @@ public interface IReader<T> {
                 Path path = file.path();
                 Log.info(READ, STARTED, path);
                 try (Stream<String> lines = Files.lines(path)) {
-                    // Set algorithm sparse support flag for matrix parser
-                    if (command instanceof pt.ist.phylolib.command.algorithm.Algorithm) {
-                        boolean supportsSparse = ((pt.ist.phylolib.command.algorithm.Algorithm) command)
-                                .supportsSparseMatrix();
-                        options.put(pt.ist.phylolib.cli.Option.ALGORITHM_SUPPORTS_SPARSE,
-                                String.valueOf(supportsSparse));
-                    }
-                    T result;
-                    result = ((IReader<T>) file.processor()).parse(lines, options);
-                    // Remove internal option to avoid 'unused option' warning
-                    options.remove(pt.ist.phylolib.cli.Option.ALGORITHM_SUPPORTS_SPARSE);
+                    T result = ((IReader<T>) file.processor()).parse(lines, options);
                     if (result != null) {
                         Log.info(READ, FINISHED, path);
                         return result;
@@ -81,6 +71,39 @@ public interface IReader<T> {
 
         if (previous == null)
             throw new MissingInputException(data.toString());
+        return previous;
+    }
+
+    /**
+     * Reads a matrix using an explicit distance scope without overloading the
+     * generic reader API with matrix-only state.
+     */
+    static Matrix readMatrix(Options options, Matrix previous, DistanceScope requiredScope, boolean forceDense)
+            throws MissingInputException {
+        String input = options.remove(Data.MATRIX.option());
+        if (input != null) {
+            File file = File.get(input, Data.MATRIX);
+            if (file != null) {
+                Path path = file.path();
+                Log.info(READ, STARTED, path);
+                try (Stream<String> lines = Files.lines(path)) {
+                    Matrix result = ((MatrixParser) file.processor()).parse(lines, requiredScope, forceDense);
+                    if (result != null) {
+                        Log.info(READ, FINISHED, path);
+                        return result;
+                    }
+                    Log.warning(READ, FAILED, path);
+                } catch (IllegalStateException exception) {
+                    throw exception;
+                } catch (Exception exception) {
+                    Log.warning(READ, FAILED, path);
+                    Log.exception(exception);
+                }
+            }
+        }
+
+        if (previous == null)
+            throw new MissingInputException(Data.MATRIX.toString());
         return previous;
     }
 
