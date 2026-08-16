@@ -13,6 +13,7 @@ public class Matrix {
         this.ids = ids;
         this.distances = new double[ids.length][];
         this.distance = null;
+        this.distanceScope = null;
     }
 
     public Matrix(boolean symmetric, String[] ids, IDistance distance) {
