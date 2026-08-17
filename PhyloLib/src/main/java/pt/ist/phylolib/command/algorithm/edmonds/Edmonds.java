@@ -2,11 +2,11 @@ package pt.ist.phylolib.command.algorithm.edmonds;
 
 import pt.ist.phylolib.command.algorithm.Algorithm;
 import pt.ist.phylolib.data.matrix.Matrix;
+import pt.ist.phylolib.data.matrix.MemoryMappedMatrix;
 import pt.ist.phylolib.data.tree.Edge;
 import pt.ist.phylolib.data.tree.Tree;
-import pt.ist.phylolib.data.memorymapper.GraphMapper;
-import pt.ist.phylolib.command.distance.GrapeTree;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -16,7 +16,7 @@ import java.util.*;
 public final class Edmonds extends Algorithm {
 
 	private Comparator<EdgeNode> comparator;
-	private BinomialHeap[] queues;
+	private Comparator<Edge> maxDisjointCmp;
 
 	/** A union-find data structure to maintain the weakly connected components of the forest */
 	private DisjointSet weaklyConnected;
@@ -69,6 +69,8 @@ public final class Edmonds extends Algorithm {
 	/** The base file name for the externally stored input graph */
 	private String baseFileName;
 
+	private MemoryMappedMatrix matrix;
+
 
 	@Override
 	protected Tree processImpl(Matrix matrix) {
@@ -92,39 +94,47 @@ public final class Edmonds extends Algorithm {
 
 	private void init(Matrix matrix) {
 		int size = matrix.size();
-		this.comparator = initComparator();
+		if (matrix instanceof MemoryMappedMatrix) {
+			this.matrix = (MemoryMappedMatrix) matrix;
+		}
+		initComparator();
 		this.stronglyConnected = new WeightedDisjointSet(size);
 		this.weaklyConnected = new DisjointSet(size);
-		this.queues = new BinomialHeap[size];
 		this.inEdgeNode = new EdgeNode[size];
 		this.forest = new Forest(size);
 		this.roots = new LinkedList<>();
 		this.edgeNodeCycle = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
 			this.roots.add(i);
-			this.queues[i] = new BinomialHeap(this.comparator);
 			this.edgeNodeCycle.add(i, null);
-		}
-		for (int i = 0; i < size; i++) {
-			for (int j = 0; j < size; j++)
-				if (i != j)
-					queues[j].push(new EdgeNode(new Edge(i, j, matrix.distance(i, j))));
 		}
 	}
 
-	private Comparator<EdgeNode> initComparator() {
-		return Comparator.comparing(EdgeNode::getEdge, Comparator.comparingDouble(this::getAdjustedWeight)
+	private void initComparator() {
+		this.comparator = Comparator.comparing(EdgeNode::getEdge, Comparator.comparingDouble(this::getAdjustedWeight)
 				.thenComparingInt(i -> Integer.min(i.from(), i.to()))
 				.thenComparingInt(i -> Integer.max(i.from(), i.to())));
+
+		this.maxDisjointCmp = (a, b) -> Double.compare(
+			getAdjustedWeight(a),
+			getAdjustedWeight(b)
+		);
 	}
 
 	private void contract(int u, int v, int root, EdgeNode min) {
+		// store nodes in cycle
 		List<Integer> contractionSet = new ArrayList<>();
 		contractionSet.add(stronglyConnected.findSet(v));
+
+		// keep track of the edges in the cycle
 		List<EdgeNode> nodes = new ArrayList<>();
 		nodes.add(min);
+
+		// map the EdgeNode incident in a node
 		Map<Integer, EdgeNode> map = new HashMap<>();
 		map.put(stronglyConnected.findSet(v), min);
+
+		// since a cycle as arisen we need to choose a new minimum weight edge incident in node root
 		inEdgeNode[root] = null;
 		for (int i = stronglyConnected.findSet(u); inEdgeNode[i] != null; i = stronglyConnected
 				.findSet(inEdgeNode[i].getEdge().from())) {
@@ -132,44 +142,63 @@ public final class Edmonds extends Algorithm {
 			nodes.add(inEdgeNode[i]);
 			contractionSet.add(i);
 		}
+
 		Edge edge = Collections.max(nodes, comparator).getEdge();
 		int dst = stronglyConnected.findSet(edge.to());
 		double max = getAdjustedWeight(edge);
-		for (Integer node : contractionSet)
-			stronglyConnected.addWeight(node, max - getAdjustedWeight(map.get(node).getEdge()));
-		for (EdgeNode node : nodes)
+
+		updateReducedCosts(contractionSet, map, max);
+
+		for (EdgeNode node : nodes) { // Perform union of the nodes in the cycle
 			stronglyConnected.unionSet(node.getEdge().from(), node.getEdge().to());
+		}
+
 		int rep = stronglyConnected.findSet(edge.to());
+		updateSCCComposition(rep, contractionSet);
 		roots.add(0, rep);
-		performHeapUnion(rep, contractionSet);
 		forest.updateMax(rep, dst);
 		edgeNodeCycle.set(rep, nodes);
 	}
 
-	private void performHeapUnion(int rep, List<Integer> contractionSet) {
-		BinomialHeap heap = queues[rep];
-		for (Integer node : contractionSet)
-			if (rep != node)
-				heap.union(queues[node]);
+	private void updateReducedCosts(List<Integer> contractionSet, Map<Integer, EdgeNode> map, double sigma) {
+		for (Integer node : contractionSet) {
+			stronglyConnected.addWeight(node, sigma - getAdjustedWeight(map.get(node).getEdge()));
+		}
 	}
 
-	private EdgeNode getMinEdgeNode(int root) {
-		BinomialHeap pq = queues[root];
-		if (pq.isEmpty()) {
+	private void updateSCCComposition(int rep, List<Integer> contractionSet) {
+		Set<Integer> sccSet = sccComposition.getOrDefault(rep, new HashSet<>());
+		for (Integer node : contractionSet) {
+			if (rep != node) {
+				sccSet.add(node);
+				if (sccComposition.containsKey(node)) {
+					sccSet.addAll(sccComposition.get(node));
+					sccComposition.remove(node);
+				}
+			}
+		}
+		sccComposition.put(rep, sccSet);
+	}
+
+    private EdgeNode getMinEdgeNode(int root) {
+        Set<Integer> nodesInSCC = sccComposition.getOrDefault(
+			stronglyConnected.findSet(root),
+			Set.of(stronglyConnected.findSet(root))
+		);
+        
+		Edge e;
+		try {
+        	e = matrix.getGraphMapper().findMinSafeEdgeIncomingToSCC(baseFileName, stronglyConnected, nodesInSCC, maxDisjointCmp);    		
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			throw new RuntimeException("Caught an IOException when finding a min safe edge from the memory mapped files");
+		}
+			if (e == null || stronglyConnected.sameSet(e.from(), e.to())) {
 			forest.addEntryToRset(root);
 			return null;
 		}
-		EdgeNode minEdgeNode = pq.pop();
-		Edge min = minEdgeNode.getEdge();
-		while (!pq.isEmpty() && stronglyConnected.sameSet(min.from(), min.to())) {
-			minEdgeNode = pq.pop();
-			min = minEdgeNode.getEdge();
-		}
-		if (stronglyConnected.sameSet(min.from(), min.to())) {
-			forest.addEntryToRset(root);
-			return null;
-		}
-		return minEdgeNode;
+
+		return new EdgeNode(e);
 	}
 
 	private void processCameriniForest(EdgeNode minEdgeNode, int root) {

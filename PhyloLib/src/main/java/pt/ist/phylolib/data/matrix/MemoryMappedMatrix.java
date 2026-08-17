@@ -8,14 +8,21 @@ public class MemoryMappedMatrix extends Matrix {
     /** The base file name for matrices stored in external memory through memory mapping */
     private String baseFileName;
 
+    private GraphMapper graphMapper;
 
-    public MemoryMappedMatrix(boolean symmetric, String[] ids, String baseFileName) {
+
+    public MemoryMappedMatrix(boolean symmetric, String[] ids, String baseFileName, GraphMapper mapper) {
         super(symmetric, ids);
         this.baseFileName = baseFileName;
+        this.graphMapper = mapper;
     }
 
     public String getBaseFileName() {
         return baseFileName;
+    }
+
+    public GraphMapper getGraphMapper() {
+        return this.graphMapper;
     }
 
     @Override
