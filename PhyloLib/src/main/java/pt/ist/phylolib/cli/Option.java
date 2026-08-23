@@ -13,7 +13,9 @@ public enum Option {
     TREE('t', Format.FILE),
     LVS('l', Format.NATURAL, "3"),
     FORCE_DENSE('f', Format.FLAG, "false"),
-    ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true");
+    ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true"),
+    INPUT('i', Format.FILE),
+    PREV_STATE('p', Format.FILE);
 
     private final String alias;
     private final Format format;

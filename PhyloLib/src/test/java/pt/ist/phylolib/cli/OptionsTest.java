@@ -126,4 +126,26 @@ public class OptionsTest {
 		assertTrue(options.keys().contains(Option.TREE));
 	}
 
+	@Test
+	public void put_NewEdmondsOptions_Success() {
+		Options options = new Options();
+		options.put("--input=fasta:sequences.fasta");
+		options.put("--prev-state=binary:/tmp/prev.dat");
+
+		assertEquals(options.keys().size(), 2);
+		assertEquals(options.remove(Option.INPUT), "fasta:sequences.fasta");
+		assertEquals(options.remove(Option.PREV_STATE), "binary:/tmp/prev.dat");
+	}
+
+	@Test
+	public void put_NewEdmondsOptions_Alias_Success() {
+		Options options = new Options();
+		options.put("-i=ml:profiles.txt");
+		options.put("-p=newick:/tmp/prev_state");
+
+		assertEquals(options.keys().size(), 2);
+		assertEquals(options.remove(Option.INPUT), "ml:profiles.txt");
+		assertEquals(options.remove(Option.PREV_STATE), "newick:/tmp/prev_state");
+	}
+
 }
