@@ -108,6 +108,57 @@ public class GraphMapper {
     public int[] loadNodeIDs() throws IOException {
         return nodeIndexMapper.loadNodeIDs();
     }
+
+    /**
+     * Load all profiles from the memory-mapped node index file.
+     *
+     * @return List of profiles in file order
+     * @throws IOException if file operations fail
+     */
+    public List<Profile> loadProfiles() throws IOException {
+        return nodeIndexMapper.loadProfiles();
+    }
+
+    /**
+     * Read the sequence length from the node index file header.
+     *
+     * @return the sequence length
+     * @throws IOException if file operations fail
+     */
+    public int loadSequenceLength() throws IOException {
+        return nodeIndexMapper.getSequenceLength();
+    }
+
+    /**
+     * Get the number of nodes in the graph.
+     *
+     * @return number of nodes
+     * @throws IOException if file operations fail
+     */
+    public int getNumNodes() throws IOException {
+        return nodeIndexMapper.getNumNodes();
+    }
+
+    /**
+     * Add multiple profiles to the node index in a batch.
+     *
+     * @param profiles profiles to add
+     * @param sequenceLength sequence length for all profiles
+     * @throws IOException if file operations fail
+     */
+    public void addNodeBatch(List<Profile> profiles, int sequenceLength) throws IOException {
+        nodeIndexMapper.addNodesBatch(profiles, sequenceLength);
+    }
+
+    /**
+     * Resolve a string profile ID to its integer node ID.
+     *
+     * @param id the string profile ID
+     * @return the integer node ID
+     */
+    public int strIDToIntegerID(String id) {
+        return nodeIndexMapper.strIDToIntegerID(id);
+    }
     
     
     /**

@@ -334,7 +334,73 @@ public final class NodeIndexMapper {
         }
         return nodeIDs;
     }
-    
+
+    /**
+     * Load all profiles from the memory-mapped file.
+     *
+     * @return List of profiles in file order
+     * @throws IOException if file operations fail
+     */
+    public List<Profile> loadProfiles() throws IOException {
+        List<Profile> profiles = new ArrayList<>();
+
+        try (RandomAccessFile raf = new RandomAccessFile(nodeIndexFile, "r");
+             FileChannel channel = raf.getChannel()) {
+
+            if (channel.size() < HEADER_SIZE) {
+                return profiles;
+            }
+
+            MappedByteBuffer headerMbb = channel.map(FileChannel.MapMode.READ_ONLY, 0, HEADER_SIZE);
+            headerMbb.order(ByteOrder.nativeOrder());
+            int numNodes = headerMbb.getInt();
+            int sequenceLength = headerMbb.getInt();
+
+            int entrySize = NODE_ID_BYTES + sequenceLength * BYTES_PER_LOCUS;
+            int nodesPerChunk = (int)(MAX_MAPPING_SIZE / entrySize);
+            if (nodesPerChunk == 0) nodesPerChunk = 1;
+
+            long fileSize = channel.size();
+
+            for (int i = 0; i < numNodes; i += nodesPerChunk) {
+                int endIdx = Math.min(i + nodesPerChunk, numNodes);
+                int chunkSize = endIdx - i;
+
+                long[] bounds = getChunkBounds(i, chunkSize, entrySize, fileSize);
+                long position = bounds[0];
+                long size = bounds[1];
+
+                MappedByteBuffer mbb = channel.map(FileChannel.MapMode.READ_ONLY, position, size);
+                mbb.order(ByteOrder.nativeOrder());
+
+                for (int j = 0; j < chunkSize; j++) {
+                    profiles.add(readProfile(mbb, sequenceLength));
+                }
+            }
+        }
+
+        return profiles;
+    }
+
+    /**
+     * Read the sequence length from the file header.
+     *
+     * @return the sequence length
+     * @throws IOException if file operations fail
+     */
+    public int getSequenceLength() throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(nodeIndexFile, "r");
+             FileChannel channel = raf.getChannel()) {
+            if (channel.size() < HEADER_SIZE) {
+                throw new IOException("Invalid file format: file too small for header");
+            }
+            MappedByteBuffer mbb = channel.map(FileChannel.MapMode.READ_ONLY, 0, HEADER_SIZE);
+            mbb.order(ByteOrder.nativeOrder());
+            mbb.getInt(); // skip numNodes
+            return mbb.getInt(); // sequenceLength
+        }
+    }
+
     // /**
     //  * Load graph node IDs from memory-mapped file.
     //  * 
