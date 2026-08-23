@@ -13,6 +13,7 @@ public enum Option {
     TREE('t', Format.FILE),
     LVS('l', Format.NATURAL, "3"),
 <<<<<<< HEAD
+<<<<<<< HEAD
     FORCE_DENSE('f', Format.FLAG, "false"),
     ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true"),
     INPUT('i', Format.FILE),
@@ -20,6 +21,12 @@ public enum Option {
 =======
     FORCE_DENSE('f', Format.FLAG, "false");
 >>>>>>> 34b3519 (feat: add goeBURST Full MST and distance-aware matrix storage)
+=======
+    FORCE_DENSE('f', Format.FLAG, "false"),
+    ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true"),
+    INPUT('i', Format.FILE),
+    PREV_STATE('p', Format.FILE);
+>>>>>>> 44a6580 (refactor: change CLI grammar to allow Edmonds' to use a MemoryMappedMatrix and store an execution's state)
 
     private final String alias;
     private final Format format;

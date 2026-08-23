@@ -3,6 +3,7 @@ package pt.ist.phylolib.cli;
 import pt.ist.phylolib.command.algorithm.gcp.UPGMA;
 import pt.ist.phylolib.command.algorithm.edmonds.Edmonds;
 import pt.ist.phylolib.command.algorithm.nj.StudierKepler;
+import pt.ist.phylolib.command.algorithm.edmonds.Edmonds;
 import pt.ist.phylolib.command.distance.Hamming;
 import pt.ist.phylolib.command.optimization.LBR;
 import pt.ist.phylolib.exception.*;
