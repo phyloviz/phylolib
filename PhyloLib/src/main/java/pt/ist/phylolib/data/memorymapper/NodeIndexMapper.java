@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -144,22 +145,15 @@ public final class NodeIndexMapper {
     private byte[] sequenceToBytes(Profile profile) {
         int schemaLength = profile.size();
         byte[] bytes = new byte[schemaLength * BYTES_PER_LOCUS];
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        buffer.order(ByteOrder.nativeOrder());
 
         for (int i = 0; i < schemaLength; i++) {
             Integer locusValue = profile.locus(i);
-            int offset = i * BYTES_PER_LOCUS;
             if (locusValue == null) {
-                // Represent missing data as -1 (0xFFFFFFFF)
-                bytes[offset] = (byte) 0xFF;
-                bytes[offset + 1] = (byte) 0xFF;
-                bytes[offset + 2] = (byte) 0xFF;
-                bytes[offset + 3] = (byte) 0xFF;
+                buffer.putInt(-1); // Missing data as -1 (0xFFFFFFFF)
             } else {
-                // Write the integer value in big-endian format
-                bytes[offset] = (byte) (locusValue >> 24);
-                bytes[offset + 1] = (byte) (locusValue >> 16);
-                bytes[offset + 2] = (byte) (locusValue >> 8);
-                bytes[offset + 3] = (byte) locusValue.intValue();
+                buffer.putInt(locusValue);
             }
         }
         
@@ -662,7 +656,8 @@ public final class NodeIndexMapper {
     private Integer[] readSequenceData(MappedByteBuffer mbb, int sequenceLength) {
         Integer[] sequenceData = new Integer[sequenceLength];
         for (int i = 0; i < sequenceLength; i++) {
-            sequenceData[i] = mbb.getInt();
+            int value = mbb.getInt();
+            sequenceData[i] = (value == -1) ? null : value;
         }
         return sequenceData;
     }
