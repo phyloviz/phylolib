@@ -2,14 +2,30 @@ package pt.ist.phylolib.command.algorithm.goeburst;
 
 final class MinHeap {
 
+    @FunctionalInterface
+    interface NodeComparator {
+        int compare(int left, int right);
+    }
+
     private final int[] heap;
     private final int[] pos;
-    private final double[] key;
+    private final NodeComparator comparator;
     private int size;
 
     MinHeap(double[] key) {
-        this.key = key;
-        int n = key.length;
+        this(key.length, (a, b) -> {
+            double ka = key[a];
+            double kb = key[b];
+            if (ka < kb)
+                return -1;
+            if (ka > kb)
+                return 1;
+            return Integer.compare(a, b);
+        });
+    }
+
+    MinHeap(int n, NodeComparator comparator) {
+        this.comparator = comparator;
         this.heap = new int[n];
         this.pos = new int[n];
         for (int i = 0; i < n; i++) {
@@ -47,6 +63,19 @@ final class MinHeap {
         siftUp(i);
     }
 
+    /**
+     * Restores the heap after a node's externally held priority changed.
+     * This is needed when a full goeBURST candidate improves by a tie-break
+     * rule while retaining the same numerical distance.
+     */
+    void updateKey(int node) {
+        int i = pos[node];
+        if (i < 0)
+            return;
+        siftUp(i);
+        siftDown(pos[node]);
+    }
+
     private void siftUp(int i) {
         while (i > 0) {
             int p = (i - 1) / 2;
@@ -76,13 +105,7 @@ final class MinHeap {
     }
 
     private boolean less(int a, int b) {
-        double ka = key[a];
-        double kb = key[b];
-        if (ka < kb)
-            return true;
-        if (ka > kb)
-            return false;
-        return a < b;
+        return comparator.compare(a, b) < 0;
     }
 
     private void swap(int i, int j) {
