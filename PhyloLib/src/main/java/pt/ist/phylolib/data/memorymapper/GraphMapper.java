@@ -431,7 +431,7 @@ public class GraphMapper {
 
     public static double getDistance(String baseName, int i, int j, boolean symmetric) throws IOException {
         double dist = EdgeListMapper.getEdgeDistance(baseName, i, j);
-        if (symmetric && dist == Double.NaN) {
+        if (symmetric && Double.isNaN(dist)) {
             dist = EdgeListMapper.getEdgeDistance(baseName, j, i);
         }
 
