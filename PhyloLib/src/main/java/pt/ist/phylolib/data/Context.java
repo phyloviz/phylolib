@@ -45,7 +45,15 @@ public final class Context {
 	 *                               previous matrix exists
 	 */
 	public Matrix getMatrix(Options options) throws MissingInputException {
-		return matrix = IReader.read(options, matrix, Data.MATRIX, currentCommand);
+		boolean tolerant = currentCommand instanceof pt.ist.phylolib.command.algorithm.Algorithm
+				&& !((pt.ist.phylolib.command.algorithm.Algorithm) currentCommand).requiresMatrix();
+		try {
+			return matrix = IReader.read(options, matrix, Data.MATRIX, currentCommand);
+		} catch (MissingInputException exception) {
+			if (tolerant)
+				return null; // the algorithm supplies its own input (e.g. Edmonds)
+			throw exception;
+		}
 	}
 
 	/**

@@ -15,7 +15,7 @@ public enum Option {
     FORCE_DENSE('f', Format.FLAG, "false"),
     ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true"),
     INPUT('i', Format.FILE),
-    PREV_STATE('p', Format.FILE);
+    PREV_STATE('p', Format.PATH);
 
     private final String alias;
     private final Format format;

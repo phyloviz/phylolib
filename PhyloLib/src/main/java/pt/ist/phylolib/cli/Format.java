@@ -6,6 +6,7 @@ package pt.ist.phylolib.cli;
 public enum Format {
 
     FILE("^\\w+:.+$"),
+    PATH("^.+$"),
     NATURAL("^\\d+$"),
     DISTANCE("^(\\d*(\\.\\d+(E-\\d+)?)?)$"),
     FLAG("^(?:true|false)?$");

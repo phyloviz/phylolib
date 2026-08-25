@@ -83,6 +83,11 @@ public final class Edmonds extends Algorithm {
 	private MemoryMappedMatrix matrix;
 
 	@Override
+    public boolean requiresMatrix() {
+        return false; // Edmonds builds its own MemoryMappedMatrix from --input
+    }
+
+	@Override
 	public void init(Context context, Options options) throws MissingInputException {
 		// Read mandatory input file path
 		String input = options.remove(Option.INPUT);
@@ -116,6 +121,7 @@ public final class Edmonds extends Algorithm {
 
 		// Build or load GraphMapper
 		GraphMapper mapper;
+		String[] ids;
 		try {
 			Path nodesFile = Path.of(prevStateBase + "_nodes.dat");
 			if (Files.exists(nodesFile)) {
@@ -124,12 +130,14 @@ public final class Edmonds extends Algorithm {
 			} else {
 				mapper = buildGraphFromProfiles(dataset, prevStateBase);
 			}
+			// Matrix ids must cover the full node set (existing + new) so that the
+			// node indices used by the edge files match the matrix/disjoint-set size.
+			ids = mapper.loadProfiles().stream().map(Profile::id).toArray(String[]::new);
 		} catch (IOException e) {
 			throw new MissingInputException("INPUT (failed to initialize graph: " + e.getMessage() + ")");
 		}
 
 		// Create MemoryMappedMatrix
-		String[] ids = dataset.ids();
 		this.matrix = new MemoryMappedMatrix(false, ids, prevStateBase, mapper);
 		this.baseFileName = prevStateBase;
 
@@ -207,9 +215,12 @@ public final class Edmonds extends Algorithm {
 		int sequenceLength = mapper.loadSequenceLength();
 		int existingCount = existingProfiles.size();
 
-		// 2. Extract new profiles from dataset
+		// 2. Extract new profiles from dataset (only ids not already present)
+		Set<String> existingIds = existingProfiles.stream().map(Profile::id).collect(Collectors.toSet());
+		Set<String> seen = new HashSet<>();
 		List<Profile> newProfiles = IntStream.range(0, dataset.size())
 				.mapToObj(dataset::profile)
+				.filter(profile -> !existingIds.contains(profile.id()) && seen.add(profile.id()))
 				.collect(Collectors.toList());
 		int newCount = newProfiles.size();
 
