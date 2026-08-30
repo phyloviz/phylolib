@@ -12,8 +12,7 @@ public enum Option {
     MATRIX('m', Format.FILE),
     TREE('t', Format.FILE),
     LVS('l', Format.NATURAL, "3"),
-    FORCE_DENSE('f', Format.FLAG, "false"),
-    ALGORITHM_SUPPORTS_SPARSE('\0', Format.FLAG, "true");
+    FORCE_DENSE('f', Format.FLAG, "false");
 
     private final String alias;
     private final Format format;
