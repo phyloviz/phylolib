@@ -113,6 +113,11 @@ public final class Edmonds extends Algorithm {
 		String prevStateBase;
 		if (prevStatePath != null) {
 			prevStateBase = prevStatePath.contains(":") ? prevStatePath.split(":", 2)[1] : prevStatePath;
+			if (prevStateBase.contains("_graph_state")) {
+				// remove the "_graph_state" suffix if present, 
+				// to get the base name for graph state files
+				prevStateBase = prevStateBase.substring(0, prevStateBase.indexOf("_graph_state"));
+			}
 		} else {
 			String inputPath = inputFile.path().toString();
 			int dotIndex = inputPath.lastIndexOf('.');
