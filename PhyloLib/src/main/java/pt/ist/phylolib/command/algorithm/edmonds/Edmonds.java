@@ -88,6 +88,11 @@ public final class Edmonds extends Algorithm {
     }
 
 	@Override
+	public Tree process(Matrix matrix) {
+		return processImpl(matrix);
+	}
+
+	@Override
 	public void init(Context context, Options options) throws MissingInputException {
 		// Read mandatory input file path
 		String input = options.remove(Option.INPUT);
