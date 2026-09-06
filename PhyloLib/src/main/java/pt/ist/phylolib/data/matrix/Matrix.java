@@ -8,6 +8,14 @@ public class Matrix {
     private final IDistance distance;
     private final DistanceScope distanceScope;
 
+    public Matrix(boolean symmetric, String[] ids) {
+        this.symmetric = symmetric;
+        this.ids = ids;
+        this.distances = new double[ids.length][];
+        this.distance = null;
+        this.distanceScope = null;
+    }
+
     public Matrix(boolean symmetric, String[] ids, IDistance distance) {
         this(symmetric, ids, distance, DistanceScope.Complete.INSTANCE);
     }

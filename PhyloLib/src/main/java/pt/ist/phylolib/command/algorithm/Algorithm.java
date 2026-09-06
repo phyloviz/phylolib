@@ -27,6 +27,18 @@ public abstract class Algorithm implements ICommand<Matrix, Tree> {
     public void configureRequiredDistanceScope(Options options) {
     }
 
+    /**
+     * Indicates whether this algorithm requires an externally provided matrix
+     * (from a preceding distance command or the --matrix option) as its input.
+     * Override to return false for algorithms that build their own matrix
+     * during init (e.g. Edmonds builds a MemoryMappedMatrix from --input).
+     *
+     * @return true if an external matrix is required, false otherwise
+     */
+    public boolean requiresMatrix() {
+        return true;
+    }
+
     @Override
     public Tree process(Matrix matrix) {
         if (!matrix.distanceScope().covers(requiredDistanceScope()))
