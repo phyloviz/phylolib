@@ -17,93 +17,69 @@ import static org.testng.Assert.assertTrue;
 
 public class StudierKeplerTest {
 
-    @DataProvider
-    public Object[][] data() {
-        return new Object[][]{
-                {new double[][]{
-                        {},
-                        {1.0}}},
-                {new double[][]{
-                        {},
-                        {2.0},
-                        {2.0, 1.0}}},
-                {new double[][]{
-                        {},
-                        {5.0},
-                        {9.0, 10.0},
-                        {9.0, 10.0, 8.0},
-                        {8.0, 9.0, 7.0, 3.0}}},
-                {new double[][]{
-                        {},
-                        {3.0},
-                        {3.0, 3.0},
-                        {3.0, 3.0, 2.0},
-                        {3.0, 3.0, 3.0, 3.0},
-                        {3.0, 3.0, 3.0, 3.0, 3.0},
-                        {3.0, 2.0, 3.0, 3.0, 3.0, 3.0},
-                        {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0}}}
-        };
-    }
+	@DataProvider
+	public Object[][] data() {
+		return new Object[][] {
+				{ new double[][] {
+						{ },
+						{ 1.0 } },
+				  new Edge(2, 0, 0.5),
+				  new Edge(2, 1, 0.5) },
+				{ new double[][] {
+						{ },
+						{ 2.0 },
+						{ 2.0, 1.0 } },
+				  new Edge(3, 0, 1.5),
+				  new Edge(3, 1, 0.5),
+				  new Edge(3, 2, 0.5) },
+				{ new double[][] {
+						{ },
+						{ 5.0 },
+						{ 9.0, 10.0 },
+						{ 9.0, 10.0, 8.0 },
+						{ 8.0, 9.0, 7.0, 3.0 } },
+				  new Edge(5, 0, 2),
+				  new Edge(5, 1, 3),
+				  new Edge(6, 2, 4),
+				  new Edge(6, 5, 3),
+				  new Edge(7, 3, 2),
+				  new Edge(7, 4, 1),
+				  new Edge(6, 7, 2) },
+				{ new double[][] {
+						{ },
+						{ 3.0 },
+						{ 3.0, 3.0 },
+						{ 3.0, 3.0, 2.0 },
+						{ 3.0, 3.0, 3.0, 3.0 },
+						{ 3.0, 3.0, 3.0, 3.0, 3.0 },
+						{ 3.0, 2.0, 3.0, 3.0, 3.0, 3.0 },
+						{ 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0 } },
+				  new Edge(8, 1, 1),
+				  new Edge(8, 6, 1),
+				  new Edge(9, 2, 1),
+				  new Edge(9, 3, 1),
+				  new Edge(10, 0, 1.5),
+				  new Edge(10, 4, 1.5),
+				  new Edge(11, 5, 1.5),
+				  new Edge(11, 7, 1.5),
+				  new Edge(12, 8, 0.5),
+				  new Edge(12, 9, 0.5),
+				  new Edge(13, 10, 0),
+				  new Edge(13, 11, 0),
+				  new Edge(14, 12, 0),
+				  new Edge(14, 13, 0) }
+		};
+	}
 
-    @Test(dataProvider = "data")
-    public void process_Valid_Success(double[][] values) {
-        Matrix matrix = new Matrix(true, null, values);
+	@Test(dataProvider = "data")
+	public void process_Valid_Success(double[][] values, Edge... edges) {
+		Matrix matrix = new Matrix(true, null, values);
+		List<Edge> expected = Arrays.asList(edges);
 
 		Tree tree = new StudierKepler().process(matrix);
 
-        assertRootedAtMidpoint(tree, values.length);
-    }
-
-    private void assertRootedAtMidpoint(Tree tree, int terminals) {
-        List<Edge> edges = tree.edges().collect(Collectors.toList());
-        List<Integer> roots = edges.stream().map(Edge::from).distinct()
-                .filter(i -> edges.stream().noneMatch(edge -> edge.to() == i)).toList();
-
-        assertEquals(roots.size(), 1);
-        assertTrue(roots.getFirst() >= terminals);
-        assertEquals(maxDepth(roots.getFirst(), -1, adjacency(edges), 0), diameter(edges, terminals) / 2);
-    }
-
-    private int diameter(List<Edge> edges, int terminals) {
-        Map<Integer, List<Edge>> adjacency = adjacency(edges);
-        int diameter = 0;
-        for (int i = 0; i < terminals; i++)
-            for (int j = i + 1; j < terminals; j++)
-                diameter = Math.max(diameter, distance(i, j, -1, adjacency, 0));
-        return diameter;
-    }
-
-    private int distance(int current, int target, int previous, Map<Integer, List<Edge>> adjacency, int distance) {
-        if (current == target)
-            return distance;
-        for (Edge edge : adjacency.getOrDefault(current, List.of())) {
-            int next = edge.from() == current ? edge.to() : edge.from();
-            if (next == previous)
-                continue;
-            int found = distance(next, target, current, adjacency, distance + 1);
-            if (found >= 0)
-                return found;
-        }
-        return -1;
-    }
-
-    private int maxDepth(int current, int previous, Map<Integer, List<Edge>> adjacency, int depth) {
-        int max = depth;
-        for (Edge edge : adjacency.getOrDefault(current, List.of())) {
-            int next = edge.from() == current ? edge.to() : edge.from();
-            if (next != previous)
-                max = Math.max(max, maxDepth(next, current, adjacency, depth + 1));
-        }
-        return max;
-    }
-
-    private Map<Integer, List<Edge>> adjacency(List<Edge> edges) {
-        Map<Integer, List<Edge>> adjacency = new HashMap<>();
-        for (Edge edge : edges) {
-            adjacency.computeIfAbsent(edge.from(), key -> new ArrayList<>()).add(edge);
-            adjacency.computeIfAbsent(edge.to(), key -> new ArrayList<>()).add(edge);
-        }
-        return adjacency;
-    }
+		assertEquals(tree.edges().count(), expected.size());
+		assertTrue(tree.edges().allMatch(i -> expected.stream().anyMatch(j -> i.from() == j.from() && i.to() == j.to() && i.distance() == j.distance())));
+	}
 
 }
