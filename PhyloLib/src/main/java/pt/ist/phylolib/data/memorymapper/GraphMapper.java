@@ -58,7 +58,8 @@ public class GraphMapper {
     /**
      * Save a graph to memory-mapped files.
      * 
-     * @param graph Graph to save
+     * @param profiles List of profiles to save
+     * @param edges List of edges to save
      * @param sequenceLength Fixed length for genomic data (in bytes)
      * @param baseName Base name for output files
      * @throws IOException if file operations fail
@@ -91,7 +92,6 @@ public class GraphMapper {
      * 
      * @param profiles List of profiles to save
      * @param sequenceLength Fixed length for genomic data (in bytes)
-     * @param baseName Base name for output files
      * @throws IOException if file operations fail
      */
     public void saveGraph(List<Profile> profiles, int sequenceLength) throws IOException {
@@ -207,8 +207,7 @@ public class GraphMapper {
      *
      * @param node Node to add
      * @param incomingEdges List of edges pointing TO the new node
-     * @param baseName Base name for files
-     * @param mlstLength Fixed length for MLST data
+     * @param sequenceLength Fixed length for MLST data
      * @throws IOException if file operations fail
      */
     public void addNode(Profile node, List<Edge> incomingEdges, int sequenceLength) throws IOException {
@@ -384,7 +383,7 @@ public class GraphMapper {
      * 
      * @param sourceId ID of the source node
      * @param maxDestId Maximum destination node ID to consider for outgoing edges
-     * @return List of outgoing edges from the source node with destination IDs <= maxDestId
+     * @return List of outgoing edges from the source node with destination IDs less than or equal to maxDestId
      * @throws IOException if file operations fail
      */
     public List<Edge> getOutgoingEdgesUpToId(int sourceId, int maxDestId) throws IOException {

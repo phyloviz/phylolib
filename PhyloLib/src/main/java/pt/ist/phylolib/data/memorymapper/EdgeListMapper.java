@@ -427,7 +427,6 @@ public final class EdgeListMapper {
      * 
      * @param filename Path to the edge list file
      * @param edges List of edges to write to the file
-     * @throws IOException if file operations fail
      */
     public static void writeEdgeArray(String filename, List<Edge> edges) {
         try (RandomAccessFile raf = new RandomAccessFile(filename, "rw");
