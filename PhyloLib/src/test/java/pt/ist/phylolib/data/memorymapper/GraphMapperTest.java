@@ -169,8 +169,8 @@ public class GraphMapperTest {
 		int c = mapper.strIDToIntegerID("C");
 		int d = mapper.strIDToIntegerID("D");
 		Profile e = new Profile("E", new Integer[] { 13, 14, 15 });
-		// A-D are assigned ids 1-4, so E gets the next incremental id (5).
-		int eId = 5;
+		// A-D are assigned ids 0-3, so E gets the next incremental id (4).
+		int eId = 4;
 
 		mapper.addNode(e, List.of(new Edge(a, eId, 1.0)), List.of(new Edge(eId, b, 2.0)), SEQ_LEN);
 		// getOutgoingEdges reads every node's file, so create empty files for A, C, D.
@@ -194,7 +194,7 @@ public class GraphMapperTest {
 		GraphMapper mapper = new GraphMapper(base, PROFILES, SEQ_LEN);
 		int a = mapper.strIDToIntegerID("A");
 		Profile e = new Profile("E", new Integer[] { 13, 14, 15 });
-		int eId = 5;
+		int eId = 4;
 
 		mapper.addNode(e, List.of(new Edge(a, eId, 1.0)), SEQ_LEN);
 		// getOutgoingEdges reads every node's file, so create empty files for A, B, C, D.
@@ -215,8 +215,8 @@ public class GraphMapperTest {
 		int b = mapper.strIDToIntegerID("B");
 		Profile e = new Profile("E", new Integer[] { 13, 14, 15 });
 		Profile f = new Profile("F", new Integer[] { 16, 17, 18 });
-		int eId = 5;
-		int fId = 6;
+		int eId = 4;
+		int fId = 5;
 
 		Map<Profile, List<Edge>> nodeEdges = new java.util.HashMap<>();
 		nodeEdges.put(e, List.of(new Edge(a, eId, 1.0)));
@@ -240,8 +240,8 @@ public class GraphMapperTest {
 		int b = mapper.strIDToIntegerID("B");
 		Profile e = new Profile("E", new Integer[] { 13, 14, 15 });
 		Profile f = new Profile("F", new Integer[] { 16, 17, 18 });
-		int eId = 5;
-		int fId = 6;
+		int eId = 4;
+		int fId = 5;
 
 		Map<Profile, List<Edge>> existingNodeNewEdges = new java.util.HashMap<>();
 		existingNodeNewEdges.put(PROFILES.get(1), List.of(new Edge(eId, b, 1.0), new Edge(fId, b, 2.0)));
@@ -267,7 +267,7 @@ public class GraphMapperTest {
 		int a = mapper.strIDToIntegerID("A");
 		int b = mapper.strIDToIntegerID("B");
 		Profile e = new Profile("E", new Integer[] { 13, 14, 15 });
-		int eId = 5;
+		int eId = 4;
 		mapper.addNode(e, List.of(new Edge(a, eId, 1.0)), List.of(new Edge(eId, b, 2.0)), SEQ_LEN);
 		assertEquals(5, mapper.getNumNodes());
 
@@ -292,8 +292,8 @@ public class GraphMapperTest {
 		int b = mapper.strIDToIntegerID("B");
 		Profile e = new Profile("E", new Integer[] { 13, 14, 15 });
 		Profile f = new Profile("F", new Integer[] { 16, 17, 18 });
-		int eId = 5;
-		int fId = 6;
+		int eId = 4;
+		int fId = 5;
 		mapper.addNode(e, List.of(new Edge(a, eId, 1.0)), List.of(new Edge(eId, b, 2.0)), SEQ_LEN);
 		mapper.addNode(f, List.of(new Edge(a, fId, 3.0)), List.of(new Edge(fId, b, 4.0)), SEQ_LEN);
 		assertEquals(6, mapper.getNumNodes());

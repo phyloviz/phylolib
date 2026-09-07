@@ -92,7 +92,7 @@ public class NodeIndexMapperTest {
 
 		assertEquals(4, ids.length);
 		for (int id : ids) {
-			assertTrue(id > 0);
+			assertTrue(id >= 0);
 		}
 	}
 
