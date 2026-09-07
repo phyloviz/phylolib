@@ -897,7 +897,7 @@ public final class NodeIndexMapper {
             newId = freeNodeIds.remove(freeNodeIds.size() - 1);
         } 
         else {
-            newId = idMap.size() + 1; // Simple incremental ID generation
+            newId = idMap.size(); // Simple incremental ID generation
         }
         storeIDPair(newId, id);
         return newId;
