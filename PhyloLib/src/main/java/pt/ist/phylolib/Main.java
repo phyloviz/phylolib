@@ -24,7 +24,7 @@ public class Main {
 				Context context = new Context();
 				ICommand.run(arguments, context, Command.DISTANCE, context::getDataset, context::setMatrix);
 				ICommand.run(arguments, context, Command.CORRECTION, context::getMatrix, context::setMatrix);
-			ICommand.run(arguments, context, Command.ALGORITHM, context::getMatrix, context::setTree);
+				ICommand.run(arguments, context, Command.ALGORITHM, context::getMatrix, context::setTree);
 				ICommand.run(arguments, context, Command.OPTIMIZATION, context::getTree, context::setTree);
 
 				long programEnd = System.nanoTime();
