@@ -1,24 +1,24 @@
 package pt.ist.phylolib.command.algorithm.edmonds;
 
-final class WeightedDisjointSet extends DisjointSet {
+public final class WeightedDisjointSet extends DisjointSet {
 
 	private final double[] weight;
 
-	WeightedDisjointSet(int n) {
+	public WeightedDisjointSet(int n) {
 		super(n);
 		this.weight = new double[this.size];
 	}
 
-	double findWeight(int i) {
+	protected double findWeight(int i) {
 		return i != pi[i] ? weight[i] + weight[pi[i]] : weight[i];
 	}
 
-	void addWeight(int i, double w) {
+	protected void addWeight(int i, double w) {
 		weight[findSet(i)] += w;
 	}
 
 	@Override
-	int findSet(int i) {
+	public int findSet(int i) {
 		for (; pi[i] != pi[pi[i]]; i = pi[i]) {
 			weight[i] += weight[pi[i]];
 			pi[i] = pi[pi[i]];
@@ -27,7 +27,7 @@ final class WeightedDisjointSet extends DisjointSet {
 	}
 
 	@Override
-	void unionSet(int i, int j) {
+	public void unionSet(int i, int j) {
 		i = findSet(i);
 		j = findSet(j);
 		if (i != j) {

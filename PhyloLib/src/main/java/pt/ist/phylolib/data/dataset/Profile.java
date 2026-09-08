@@ -43,6 +43,17 @@ public final class Profile {
 		}).toArray(Integer[]::new);
 	}
 
+	/**
+	 * Creates a profile corresponding to the given id and loci.
+	 * 
+	 * @param id   the id of this profile
+	 * @param loci the ids composing the loci of this profile
+	 */
+	public Profile(String id, Integer[] loci) {
+		this.id = id;
+		this.loci = loci;
+	}
+
 	public String id() {
 		return id;
 	}

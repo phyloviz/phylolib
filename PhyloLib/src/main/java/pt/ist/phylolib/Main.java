@@ -5,6 +5,7 @@ import pt.ist.phylolib.cli.Command;
 import pt.ist.phylolib.command.ICommand;
 import pt.ist.phylolib.data.Context;
 import pt.ist.phylolib.exception.ArgumentException;
+
 import pt.ist.phylolib.logging.Log;
 
 import java.io.InputStream;

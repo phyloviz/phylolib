@@ -51,8 +51,16 @@ public final class Context {
 		DistanceScope requiredScope = currentCommand instanceof Algorithm algorithm
 				? algorithm.requiredDistanceScope()
 				: DistanceScope.Complete.INSTANCE;
+		boolean tolerant = currentCommand instanceof pt.ist.phylolib.command.algorithm.Algorithm
+				&& !((pt.ist.phylolib.command.algorithm.Algorithm) currentCommand).requiresMatrix();
 		boolean forceDense = Boolean.parseBoolean(options.remove(Option.FORCE_DENSE));
-		return matrix = IReader.readMatrix(options, matrix, requiredScope, forceDense);
+		try {
+			return matrix = IReader.readMatrix(options, matrix, requiredScope, forceDense);
+		} catch (MissingInputException exception) {
+			if (tolerant)
+				return null; // the algorithm supplies its own input (e.g. Edmonds)
+			throw exception;
+		}
 	}
 
 	/**
